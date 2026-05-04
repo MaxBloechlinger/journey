@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  /* Backgrounds */
+  --bg-base: #0a0a0a;
+  --bg-surface: #111111;
+  --bg-elevated: #1a1a1a;
+  --bg-overlay: #222222;
+
+  /* Text */
+  --text-primary: #f0f0f0;
+  --text-secondary: #888888;
+  --text-muted: #444444;
+
+  /* Accent — use sparingly: active state, budget-OK, primary CTA only */
+  --accent: #e8ff47;
+  --accent-dim: #b8cc38;
+  --danger: #ff4444;
+  --success: #44ff88;
+
+  /* Borders */
+  --border: #2a2a2a;
+  --border-strong: #444444;
+
+  /* Typography */
+  --font-display: 'Space Mono', monospace;
+  --font-body: 'Inter', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
