@@ -69,6 +69,7 @@ export interface Trip {
   segments: CitySegment[]
   originCity?: string
   transitToFirst?: Transit
+  transitFromLast?: Transit
   createdAt: string
   updatedAt: string
 }

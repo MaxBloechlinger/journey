@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Pencil } from 'lucide-react'
 import { useTripStore } from '../../store/tripStore'
 import { useUIStore } from '../../store/uiStore'
 import { budgetSummary } from '../../utils/budget'
@@ -74,7 +75,7 @@ export default function Header({ trip }: Props) {
               onChange={(e) => setBudgetInput(e.target.value)}
               onBlur={commitBudget}
               onKeyDown={handleBudgetKeyDown}
-              className="w-20 bg-transparent outline-none text-center"
+              className="w-24 bg-transparent outline-none text-center"
               style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: 12,
@@ -85,11 +86,12 @@ export default function Header({ trip }: Props) {
           ) : (
             <button
               onClick={startEditing}
-              title="Click to edit budget"
-              className="hover:opacity-60 transition-opacity"
+              className="flex items-center gap-1 hover:opacity-70 transition-opacity"
               style={{ color: 'var(--text-secondary)' }}
+              title="Edit budget"
             >
               {trip.totalBudget.toLocaleString()}
+              <Pencil size={9} style={{ color: 'var(--text-muted)' }} />
             </button>
           )}
         </div>

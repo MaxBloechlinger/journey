@@ -41,10 +41,12 @@ interface TripStore {
   updateTransitToNext: (tripId: string, segmentId: string, updates: Partial<Transit>) => void
   removeTransitToNext: (tripId: string, segmentId: string) => void
 
-  // Origin actions
+  // Origin / return actions
   setOriginCity: (tripId: string, originCity: string) => void
   setTransitToFirst: (tripId: string, transit: Omit<Transit, 'id'>) => void
   removeTransitToFirst: (tripId: string) => void
+  setTransitFromLast: (tripId: string, transit: Omit<Transit, 'id'>) => void
+  removeTransitFromLast: (tripId: string) => void
 }
 
 const updateTrips = (
@@ -246,6 +248,24 @@ export const useTripStore = create<TripStore>()(
             ...t,
             originCity: undefined,
             transitToFirst: undefined,
+            updatedAt: new Date().toISOString(),
+          })),
+        })),
+
+      setTransitFromLast: (tripId, transit) =>
+        set((s) => ({
+          trips: updateTrips(s.trips, tripId, (t) => ({
+            ...t,
+            transitFromLast: { ...transit, id: newId() },
+            updatedAt: new Date().toISOString(),
+          })),
+        })),
+
+      removeTransitFromLast: (tripId) =>
+        set((s) => ({
+          trips: updateTrips(s.trips, tripId, (t) => ({
+            ...t,
+            transitFromLast: undefined,
             updatedAt: new Date().toISOString(),
           })),
         })),

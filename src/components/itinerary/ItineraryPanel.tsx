@@ -1,80 +1,114 @@
 import { useState } from 'react'
-import { Plus, X, Plane } from 'lucide-react'
-import type { Trip } from '../../types/trip'
+import { Plus, X } from 'lucide-react'
+import type { Transit, Trip } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
 import CitySegmentCard from './CitySegmentCard'
 import TransitCard from './TransitCard'
 import AddCityForm from '../forms/AddCityForm'
 import AddOriginFlightForm from '../forms/AddOriginFlightForm'
+import AddReturnFlightForm from '../forms/AddReturnFlightForm'
 
 interface Props {
   trip: Trip
 }
 
+const TRANSIT_TYPE_ICONS: Record<string, string> = {
+  Flight: '✈',
+  Train: '🚄',
+  Bus: '🚌',
+  Ferry: '⛴',
+  Other: '→',
+}
+
+function BoundaryTransitRow({
+  transit,
+  label,
+  currency,
+  onRemove,
+}: {
+  transit: Transit
+  label: string
+  currency: string
+  onRemove: () => void
+}) {
+  const icon = TRANSIT_TYPE_ICONS[transit.type] ?? '→'
+  const durationStr = transit.durationMinutes
+    ? `${Math.floor(transit.durationMinutes / 60)}h${transit.durationMinutes % 60 > 0 ? ` ${transit.durationMinutes % 60}m` : ''}`
+    : null
+
+  return (
+    <div
+      className="mx-6 flex items-center justify-between px-4 py-3"
+      style={{ border: '1px dashed var(--border)', background: 'var(--bg-base)' }}
+    >
+      <div className="flex items-center gap-3">
+        <span style={{ fontSize: 12 }}>{icon}</span>
+        <span className="text-xs font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-secondary)' }}>
+          {label}
+        </span>
+        {transit.airline && (
+          <span className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
+            {transit.airline}{transit.flightNumber ? ` ${transit.flightNumber}` : ''}
+          </span>
+        )}
+        {durationStr && (
+          <span className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
+            {durationStr}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
+          {currency} {transit.cost.toLocaleString()}
+        </span>
+        <button onClick={onRemove} className="p-1 hover:opacity-60" style={{ color: 'var(--text-muted)' }}>
+          <X size={13} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function ItineraryPanel({ trip }: Props) {
   const removeTransitToFirst = useTripStore((s) => s.removeTransitToFirst)
+  const removeTransitFromLast = useTripStore((s) => s.removeTransitFromLast)
   const [addingCity, setAddingCity] = useState(false)
   const [addingOriginFlight, setAddingOriginFlight] = useState(false)
+  const [addingReturnFlight, setAddingReturnFlight] = useState(false)
 
   const firstCity = trip.segments[0]?.city
+  const lastSegment = trip.segments[trip.segments.length - 1]
 
   return (
     <div className="flex flex-col overflow-y-auto" style={{ width: '60%' }}>
       <div className="flex flex-col gap-0 p-6">
 
-        {/* Origin transit — only shown when at least one city exists */}
+        {/* Outbound flight — above first city */}
         {firstCity && (
           <div className="mb-3">
             {trip.transitToFirst ? (
-              <div
-                className="flex items-center justify-between px-4 py-3"
-                style={{ border: '1px dashed var(--border)', background: 'var(--bg-base)' }}
-              >
-                <div className="flex items-center gap-3">
-                  <Plane size={13} style={{ color: 'var(--text-secondary)' }} />
-                  <span className="text-xs font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-secondary)' }}>
-                    {(trip.originCity ?? 'HOME').toUpperCase()} → {firstCity.toUpperCase()}
-                  </span>
-                  {trip.transitToFirst.airline && (
-                    <span className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
-                      {trip.transitToFirst.airline}
-                      {trip.transitToFirst.flightNumber ? ` ${trip.transitToFirst.flightNumber}` : ''}
-                    </span>
-                  )}
-                  {trip.transitToFirst.durationMinutes && (
-                    <span className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
-                      {Math.floor(trip.transitToFirst.durationMinutes / 60)}h
-                      {trip.transitToFirst.durationMinutes % 60 > 0 ? ` ${trip.transitToFirst.durationMinutes % 60}m` : ''}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
-                    {trip.currency} {trip.transitToFirst.cost.toLocaleString()}
-                  </span>
-                  <button
-                    onClick={() => removeTransitToFirst(trip.id)}
-                    className="p-1 hover:opacity-60"
-                    style={{ color: 'var(--text-muted)' }}
-                    aria-label="Remove outbound flight"
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-              </div>
+              <BoundaryTransitRow
+                transit={trip.transitToFirst}
+                label={`${(trip.originCity ?? 'HOME').toUpperCase()} → ${firstCity.toUpperCase()}`}
+                currency={trip.currency}
+                onRemove={() => removeTransitToFirst(trip.id)}
+              />
             ) : (
-              <button
-                onClick={() => setAddingOriginFlight(true)}
-                className="flex items-center gap-2 text-xs uppercase tracking-widest hover:opacity-70 transition-opacity"
-                style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}
-              >
-                <Plus size={12} />
-                Add outbound flight → {firstCity}
-              </button>
+              <div className="mx-6">
+                <button
+                  onClick={() => setAddingOriginFlight(true)}
+                  className="flex items-center gap-2 text-xs uppercase tracking-widest hover:opacity-70 transition-opacity"
+                  style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}
+                >
+                  <Plus size={12} />
+                  Add outbound flight → {firstCity}
+                </button>
+              </div>
             )}
           </div>
         )}
 
+        {/* City cards + inter-city transits */}
         {trip.segments.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-24 text-center">
             <p className="text-xs uppercase tracking-widest" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}>
@@ -104,9 +138,34 @@ export default function ItineraryPanel({ trip }: Props) {
           </div>
         )}
 
+        {/* Return flight — below last city */}
+        {lastSegment && (
+          <div className="mt-3">
+            {trip.transitFromLast ? (
+              <BoundaryTransitRow
+                transit={trip.transitFromLast}
+                label={`${lastSegment.city.toUpperCase()} → ${trip.transitFromLast.toCity.toUpperCase()}`}
+                currency={trip.currency}
+                onRemove={() => removeTransitFromLast(trip.id)}
+              />
+            ) : (
+              <div className="mx-6">
+                <button
+                  onClick={() => setAddingReturnFlight(true)}
+                  className="flex items-center gap-2 text-xs uppercase tracking-widest hover:opacity-70 transition-opacity"
+                  style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}
+                >
+                  <Plus size={12} />
+                  Add return flight ← {lastSegment.city}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <button
           onClick={() => setAddingCity(true)}
-          className="mt-4 flex items-center gap-2 self-start px-4 py-2.5 text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-opacity"
+          className="mt-6 flex items-center gap-2 self-start px-4 py-2.5 text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-opacity"
           style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)', fontFamily: 'var(--font-display)' }}
         >
           <Plus size={13} strokeWidth={2.5} />
@@ -122,6 +181,14 @@ export default function ItineraryPanel({ trip }: Props) {
           tripId={trip.id}
           toCity={firstCity}
           onClose={() => setAddingOriginFlight(false)}
+        />
+      )}
+      {addingReturnFlight && lastSegment && (
+        <AddReturnFlightForm
+          tripId={trip.id}
+          fromCity={lastSegment.city}
+          defaultToCity={trip.originCity}
+          onClose={() => setAddingReturnFlight(false)}
         />
       )}
     </div>
