@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Trash2, Plus, Pencil } from 'lucide-react'
 import type { CitySegment, Trip } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
+import { useUIStore } from '../../store/uiStore'
 import { nights, accommodationCost, activityCost, cityCost } from '../../utils/budget'
 import { formatShortDate } from '../../utils/dates'
 import AccommodationRow from './AccommodationRow'
@@ -26,18 +27,34 @@ interface Props {
 
 export default function CitySegmentCard({ trip, segment, index }: Props) {
   const deleteSegment = useTripStore((s) => s.deleteSegment)
+  const activeSegmentId = useUIStore((s) => s.activeSegmentId)
   const [addingAccommodation, setAddingAccommodation] = useState(false)
   const [addingActivity, setAddingActivity] = useState(false)
   const [editing, setEditing] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
 
+  const isActive = segment.id === activeSegmentId
   const nightCount = nights(segment)
   const accCost = accommodationCost(segment)
   const actCost = activityCost(segment)
   const total = cityCost(segment)
 
+  useEffect(() => {
+    if (isActive && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [isActive])
+
   return (
     <>
-      <div style={{ border: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+      <div
+        ref={cardRef}
+        style={{
+          border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
+          background: 'var(--bg-surface)',
+          transition: 'border-color 0.2s',
+        }}
+      >
         {/* City header */}
         <div
           className="flex items-start justify-between px-6 py-4"
