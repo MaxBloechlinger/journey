@@ -157,11 +157,11 @@ Development follows a milestone-based approach. Each milestone has a single bina
 ### Sprint 2 — Core Planner
 | # | Milestone | Status |
 |---|---|---|
-| 5 | Empty workspace — header, map placeholder, itinerary panel render | ⬜ |
-| 6 | Add city segment with dates; appears in itinerary panel | ⬜ |
-| 7 | Add transit between cities; appears between segment cards | ⬜ |
-| 8 | Add accommodation; nightly cost × nights calculates correctly | ⬜ |
-| 9 | Add activities; costs per city add up correctly | ⬜ |
+| 5 | Empty workspace — header, map placeholder, itinerary panel render | ✅ |
+| 6 | Add city segment with dates; appears in itinerary panel | ✅ |
+| 7 | Add transit between cities; appears between segment cards | ✅ |
+| 8 | Add accommodation; nightly cost × nights calculates correctly | ✅ |
+| 9 | Add activities; costs per city add up correctly | ✅ |
 
 ### Sprint 3 — Intelligence Layer
 | # | Milestone | Status |

@@ -17,8 +17,8 @@ Full spec: `WHITEPAPER.md` (canonical — do not deviate from it without updatin
 
 ## Current State
 
-**Active Sprint:** Sprint 2 — Core Planner  
-**Current Milestone:** 5 (empty workspace layout)  
+**Active Sprint:** Sprint 3 — Intelligence Layer  
+**Current Milestone:** 10 (budget summary bar)  
 
 Update this section at the start of each session. Check `git log --oneline -10` and the README milestone table to orient yourself.
 
@@ -96,12 +96,12 @@ localStorage key: `journey_state`
 - [x] 3. Zustand store with persistence; create/read/delete trip works in devtools
 - [x] 4. Home screen — create a trip, see it listed, navigate to workspace
 
-### Sprint 2 — Core Planner
-- [ ] 5. Workspace layout renders (header, map placeholder, itinerary panel)
-- [ ] 6. Add city segment with dates; appears in itinerary panel
-- [ ] 7. Add transit between cities; appears between segment cards
-- [ ] 8. Add accommodation; nightly cost × nights calculates correctly
-- [ ] 9. Add activities; costs per city add up correctly
+### Sprint 2 — Core Planner ✅
+- [x] 5. Workspace layout renders (header, map placeholder, itinerary panel)
+- [x] 6. Add city segment with dates; appears in itinerary panel
+- [x] 7. Add transit between cities; appears between segment cards
+- [x] 8. Add accommodation; nightly cost × nights calculates correctly
+- [x] 9. Add activities; costs per city add up correctly
 
 ### Sprint 3 — Intelligence Layer
 - [ ] 10. Budget bar in header shows live total, remaining, over/under status
