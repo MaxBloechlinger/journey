@@ -3,7 +3,9 @@ import { Pencil } from 'lucide-react'
 import { useTripStore } from '../../store/tripStore'
 import { useUIStore } from '../../store/uiStore'
 import { budgetSummary } from '../../utils/budget'
-import type { Trip } from '../../types/trip'
+import type { Currency, Trip } from '../../types/trip'
+
+const CURRENCIES: Currency[] = ['EUR', 'CHF', 'USD', 'GBP', 'JPY', 'THB', 'KRW']
 
 interface Props {
   trip: Trip
@@ -64,7 +66,32 @@ export default function Header({ trip }: Props) {
       {/* Center — budget */}
       <div className="flex shrink-0 flex-col items-center gap-1">
         <div className="flex items-baseline gap-1.5" style={{ fontFamily: 'var(--font-display)', fontSize: 12 }}>
-          <span style={{ color }}>{trip.currency} {summary.totalCost.toLocaleString()}</span>
+          <span style={{ color }}>
+            <select
+              value={trip.currency}
+              onChange={(e) => updateTrip(trip.id, { currency: e.target.value as Currency })}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color,
+                fontFamily: 'var(--font-display)',
+                fontSize: 12,
+                cursor: 'pointer',
+                outline: 'none',
+                padding: 0,
+                appearance: 'none',
+                WebkitAppearance: 'none',
+              }}
+              title="Change currency"
+            >
+              {CURRENCIES.map((c) => (
+                <option key={c} value={c} style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            {' '}{summary.totalCost.toLocaleString()}
+          </span>
           <span style={{ color: 'var(--text-muted)' }}>/</span>
           {editingBudget ? (
             <input
