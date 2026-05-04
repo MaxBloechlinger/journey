@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Currency } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
 
-const CURRENCIES: Currency[] = ['EUR', 'CHF', 'USD', 'GBP', 'JPY', 'THB', 'KRW']
+const CURRENCIES: Currency[] = ['CHF', 'EUR', 'USD', 'GBP', 'JPY', 'THB', 'KRW']
 
 interface Props {
   onClose: () => void
@@ -14,7 +14,7 @@ export default function CreateTripModal({ onClose }: Props) {
 
   const [name, setName] = useState('')
   const [budget, setBudget] = useState('')
-  const [currency, setCurrency] = useState<Currency>('EUR')
+  const [currency, setCurrency] = useState<Currency>('CHF')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
