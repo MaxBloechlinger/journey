@@ -17,8 +17,8 @@ Full spec: `WHITEPAPER.md` (canonical — do not deviate from it without updatin
 
 ## Current State
 
-**Active Sprint:** Sprint 1 — Foundation  
-**Current Milestone:** 1 (project not yet scaffolded)  
+**Active Sprint:** Sprint 2 — Core Planner  
+**Current Milestone:** 5 (empty workspace layout)  
 
 Update this section at the start of each session. Check `git log --oneline -10` and the README milestone table to orient yourself.
 
@@ -90,11 +90,11 @@ localStorage key: `journey_state`
 
 ## Sprint & Milestone Structure
 
-### Sprint 1 — Foundation
-- [ ] 1. Vite + React + TS + Tailwind runs locally, no errors
-- [ ] 2. All types in `src/types/trip.ts` compile
-- [ ] 3. Zustand store with persistence; create/read/delete trip works in devtools
-- [ ] 4. Home screen — create a trip, see it listed, navigate to workspace
+### Sprint 1 — Foundation ✅
+- [x] 1. Vite + React + TS + Tailwind runs locally, no errors
+- [x] 2. All types in `src/types/trip.ts` compile
+- [x] 3. Zustand store with persistence; create/read/delete trip works in devtools
+- [x] 4. Home screen — create a trip, see it listed, navigate to workspace
 
 ### Sprint 2 — Core Planner
 - [ ] 5. Workspace layout renders (header, map placeholder, itinerary panel)

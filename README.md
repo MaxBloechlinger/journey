@@ -150,9 +150,9 @@ Development follows a milestone-based approach. Each milestone has a single bina
 | # | Milestone | Status |
 |---|---|---|
 | 1 | Project skeleton — Vite + React + TS + Tailwind runs with no errors | ✅ |
-| 2 | Type definitions — all types in `src/types/trip.ts` compile | ⬜ |
-| 3 | Zustand store — create/read/delete a trip from devtools with persistence | ⬜ |
-| 4 | Home screen — create a trip, see it listed, navigate to workspace | ⬜ |
+| 2 | Type definitions — all types in `src/types/trip.ts` compile | ✅ |
+| 3 | Zustand store — create/read/delete a trip from devtools with persistence | ✅ |
+| 4 | Home screen — create a trip, see it listed, navigate to workspace | ✅ |
 
 ### Sprint 2 — Core Planner
 | # | Milestone | Status |
