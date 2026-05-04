@@ -45,6 +45,8 @@ export interface CitySegment {
   arrivalDate: string
   departureDate: string
   // nights = diff(departureDate, arrivalDate) — never stored, always computed
+  lat?: number
+  lng?: number
   accommodation?: Accommodation
   activities: Activity[]
   transitToNext?: Transit
