@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import type { CitySegment } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
 import { nights } from '../../utils/dates'
 
 interface Props {
   tripId: string
+  segment?: CitySegment
   onClose: () => void
 }
 
@@ -23,23 +25,27 @@ const labelStyle = {
   letterSpacing: '0.1em',
 }
 
-export default function AddCityForm({ tripId, onClose }: Props) {
+export default function AddCityForm({ tripId, segment, onClose }: Props) {
   const addSegment = useTripStore((s) => s.addSegment)
+  const updateSegment = useTripStore((s) => s.updateSegment)
+  const editing = !!segment
 
-  const [city, setCity] = useState('')
-  const [country, setCountry] = useState('')
-  const [arrivalDate, setArrivalDate] = useState('')
-  const [departureDate, setDepartureDate] = useState('')
+  const [city, setCity] = useState(segment?.city ?? '')
+  const [country, setCountry] = useState(segment?.country ?? '')
+  const [arrivalDate, setArrivalDate] = useState(segment?.arrivalDate ?? '')
+  const [departureDate, setDepartureDate] = useState(segment?.departureDate ?? '')
 
-  const nightCount =
-    arrivalDate && departureDate ? nights(arrivalDate, departureDate) : null
-
+  const nightCount = arrivalDate && departureDate ? nights(arrivalDate, departureDate) : null
   const valid = city.trim() && country.trim() && arrivalDate && departureDate && (nightCount ?? 0) > 0
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!valid) return
-    addSegment(tripId, { city: city.trim(), country: country.trim(), arrivalDate, departureDate })
+    if (editing) {
+      updateSegment(tripId, segment.id, { city: city.trim(), country: country.trim(), arrivalDate, departureDate })
+    } else {
+      addSegment(tripId, { city: city.trim(), country: country.trim(), arrivalDate, departureDate })
+    }
     onClose()
   }
 
@@ -55,7 +61,7 @@ export default function AddCityForm({ tripId, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="mb-6 text-xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
-          ADD CITY
+          {editing ? 'EDIT CITY' : 'ADD CITY'}
         </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -135,7 +141,7 @@ export default function AddCityForm({ tripId, onClose }: Props) {
               className="flex-1 py-3 text-sm font-bold uppercase tracking-widest disabled:opacity-30"
               style={{ background: 'var(--accent)', color: '#0a0a0a', fontFamily: 'var(--font-display)' }}
             >
-              Add City
+              {editing ? 'Save Changes' : 'Add City'}
             </button>
             <button
               type="button"

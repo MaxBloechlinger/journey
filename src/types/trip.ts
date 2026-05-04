@@ -67,6 +67,9 @@ export interface Trip {
   totalBudget: number
   currency: Currency
   segments: CitySegment[]
+  originCity?: string
+  transitToFirst?: Transit
+  transitFromLast?: Transit
   createdAt: string
   updatedAt: string
 }

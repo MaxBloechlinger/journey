@@ -40,6 +40,13 @@ interface TripStore {
   setTransitToNext: (tripId: string, segmentId: string, transit: Omit<Transit, 'id'>) => void
   updateTransitToNext: (tripId: string, segmentId: string, updates: Partial<Transit>) => void
   removeTransitToNext: (tripId: string, segmentId: string) => void
+
+  // Origin / return actions
+  setOriginCity: (tripId: string, originCity: string) => void
+  setTransitToFirst: (tripId: string, transit: Omit<Transit, 'id'>) => void
+  removeTransitToFirst: (tripId: string) => void
+  setTransitFromLast: (tripId: string, transit: Omit<Transit, 'id'>) => void
+  removeTransitFromLast: (tripId: string) => void
 }
 
 const updateTrips = (
@@ -214,6 +221,52 @@ export const useTripStore = create<TripStore>()(
           trips: updateSegments(s.trips, tripId, segmentId, (seg) => ({
             ...seg,
             transitToNext: undefined,
+          })),
+        })),
+
+      setOriginCity: (tripId, originCity) =>
+        set((s) => ({
+          trips: updateTrips(s.trips, tripId, (t) => ({
+            ...t,
+            originCity,
+            updatedAt: new Date().toISOString(),
+          })),
+        })),
+
+      setTransitToFirst: (tripId, transit) =>
+        set((s) => ({
+          trips: updateTrips(s.trips, tripId, (t) => ({
+            ...t,
+            transitToFirst: { ...transit, id: newId() },
+            updatedAt: new Date().toISOString(),
+          })),
+        })),
+
+      removeTransitToFirst: (tripId) =>
+        set((s) => ({
+          trips: updateTrips(s.trips, tripId, (t) => ({
+            ...t,
+            originCity: undefined,
+            transitToFirst: undefined,
+            updatedAt: new Date().toISOString(),
+          })),
+        })),
+
+      setTransitFromLast: (tripId, transit) =>
+        set((s) => ({
+          trips: updateTrips(s.trips, tripId, (t) => ({
+            ...t,
+            transitFromLast: { ...transit, id: newId() },
+            updatedAt: new Date().toISOString(),
+          })),
+        })),
+
+      removeTransitFromLast: (tripId) =>
+        set((s) => ({
+          trips: updateTrips(s.trips, tripId, (t) => ({
+            ...t,
+            transitFromLast: undefined,
+            updatedAt: new Date().toISOString(),
           })),
         })),
     }),

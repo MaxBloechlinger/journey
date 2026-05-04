@@ -14,10 +14,10 @@ export const cityCost = (segment: CitySegment): number =>
   accommodationCost(segment) + activityCost(segment)
 
 export const budgetSummary = (trip: Trip): BudgetSummary => {
-  const totalFlightCost = trip.segments.reduce(
-    (sum, s) => sum + (s.transitToNext?.cost ?? 0),
-    0
-  )
+  const totalFlightCost =
+    (trip.transitToFirst?.cost ?? 0) +
+    trip.segments.reduce((sum, s) => sum + (s.transitToNext?.cost ?? 0), 0) +
+    (trip.transitFromLast?.cost ?? 0)
   const totalAccommodationCost = trip.segments.reduce(
     (sum, s) => sum + accommodationCost(s),
     0

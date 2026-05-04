@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2, Plus, Pencil } from 'lucide-react'
 import type { CitySegment, Trip } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
 import { nights, accommodationCost, activityCost, cityCost } from '../../utils/budget'
@@ -8,6 +8,7 @@ import AccommodationRow from './AccommodationRow'
 import ActivityRow from './ActivityRow'
 import AddAccommodationForm from '../forms/AddAccommodationForm'
 import AddActivityForm from '../forms/AddActivityForm'
+import AddCityForm from '../forms/AddCityForm'
 
 const SECTION_LABEL: React.CSSProperties = {
   fontFamily: 'var(--font-display)',
@@ -27,6 +28,7 @@ export default function CitySegmentCard({ trip, segment, index }: Props) {
   const deleteSegment = useTripStore((s) => s.deleteSegment)
   const [addingAccommodation, setAddingAccommodation] = useState(false)
   const [addingActivity, setAddingActivity] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   const nightCount = nights(segment)
   const accCost = accommodationCost(segment)
@@ -64,14 +66,24 @@ export default function CitySegmentCard({ trip, segment, index }: Props) {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => deleteSegment(trip.id, segment.id)}
-            className="p-1.5 hover:opacity-60 transition-opacity"
-            style={{ color: 'var(--text-muted)' }}
-            aria-label="Delete city"
-          >
-            <Trash2 size={14} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setEditing(true)}
+              className="p-1.5 hover:opacity-60 transition-opacity"
+              style={{ color: 'var(--text-muted)' }}
+              aria-label="Edit city"
+            >
+              <Pencil size={13} />
+            </button>
+            <button
+              onClick={() => deleteSegment(trip.id, segment.id)}
+              className="p-1.5 hover:opacity-60 transition-opacity"
+              style={{ color: 'var(--text-muted)' }}
+              aria-label="Delete city"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
         </div>
 
         {/* Accommodation */}
@@ -141,6 +153,13 @@ export default function CitySegmentCard({ trip, segment, index }: Props) {
           tripId={trip.id}
           segmentId={segment.id}
           onClose={() => setAddingActivity(false)}
+        />
+      )}
+      {editing && (
+        <AddCityForm
+          tripId={trip.id}
+          segment={segment}
+          onClose={() => setEditing(false)}
         />
       )}
     </>
