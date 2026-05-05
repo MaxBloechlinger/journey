@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { TransitType } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
+import DatePicker from './DatePicker'
+import DestinationInput from './DestinationInput'
 
 const TRANSIT_TYPES: TransitType[] = ['Flight', 'Train', 'Bus', 'Ferry', 'Other']
 
@@ -31,6 +33,9 @@ export default function AddOriginFlightForm({ tripId, toCity, onClose }: Props) 
   const setOriginCity = useTripStore((s) => s.setOriginCity)
 
   const [originCity, setOriginCityState] = useState('')
+  const [originCountry, setOriginCountry] = useState<string | undefined>()
+  const [originLat, setOriginLat] = useState<number | undefined>()
+  const [originLng, setOriginLng] = useState<number | undefined>()
   const [type, setType] = useState<TransitType>('Flight')
   const [departureDate, setDepartureDate] = useState('')
   const [arrivalDate, setArrivalDate] = useState('')
@@ -44,7 +49,7 @@ export default function AddOriginFlightForm({ tripId, toCity, onClose }: Props) 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!valid) return
-    setOriginCity(tripId, originCity.trim())
+    setOriginCity(tripId, originCity.trim(), originCountry, originLat, originLng)
     setTransitToFirst(tripId, {
       type,
       fromCity: originCity.trim(),
@@ -81,16 +86,12 @@ export default function AddOriginFlightForm({ tripId, toCity, onClose }: Props) 
           <div className="flex gap-4">
             <div className="flex flex-1 flex-col gap-2">
               <label style={labelStyle}>Departing From</label>
-              <input
+              <DestinationInput
                 autoFocus
-                type="text"
-                placeholder="Zurich"
                 value={originCity}
-                onChange={(e) => setOriginCityState(e.target.value)}
-                className="w-full px-4 py-3 text-sm outline-none"
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+                onChange={(city) => { setOriginCityState(city); setOriginLat(undefined); setOriginLng(undefined) }}
+                onSelect={(d) => { setOriginCityState(d.city); setOriginCountry(d.country); setOriginLat(d.lat); setOriginLng(d.lng) }}
+                placeholder="Zurich"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -144,28 +145,11 @@ export default function AddOriginFlightForm({ tripId, toCity, onClose }: Props) 
           <div className="flex gap-4">
             <div className="flex flex-1 flex-col gap-2">
               <label style={labelStyle}>Departure Date</label>
-              <input
-                type="date"
-                value={departureDate}
-                onChange={(e) => setDepartureDate(e.target.value)}
-                className="w-full px-4 py-3 text-sm outline-none"
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-              />
+              <DatePicker value={departureDate} onChange={setDepartureDate} placeholder="Departure date" />
             </div>
             <div className="flex flex-1 flex-col gap-2">
               <label style={labelStyle}>Arrival Date</label>
-              <input
-                type="date"
-                value={arrivalDate}
-                min={departureDate}
-                onChange={(e) => setArrivalDate(e.target.value)}
-                className="w-full px-4 py-3 text-sm outline-none"
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-              />
+              <DatePicker value={arrivalDate} onChange={setArrivalDate} min={departureDate || undefined} placeholder="Arrival date" />
             </div>
           </div>
 

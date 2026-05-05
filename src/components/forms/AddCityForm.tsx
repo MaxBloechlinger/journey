@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { CitySegment } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
 import { nights } from '../../utils/dates'
+import DatePicker from './DatePicker'
+import DestinationInput from './DestinationInput'
 
 interface Props {
   tripId: string
@@ -32,6 +34,8 @@ export default function AddCityForm({ tripId, segment, onClose }: Props) {
 
   const [city, setCity] = useState(segment?.city ?? '')
   const [country, setCountry] = useState(segment?.country ?? '')
+  const [lat, setLat] = useState<number | undefined>(segment?.lat)
+  const [lng, setLng] = useState<number | undefined>(segment?.lng)
   const [arrivalDate, setArrivalDate] = useState(segment?.arrivalDate ?? '')
   const [departureDate, setDepartureDate] = useState(segment?.departureDate ?? '')
 
@@ -41,10 +45,17 @@ export default function AddCityForm({ tripId, segment, onClose }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!valid) return
+    const fields = {
+      city: city.trim(),
+      country: country.trim(),
+      arrivalDate,
+      departureDate,
+      ...(lat !== undefined && lng !== undefined ? { lat, lng } : {}),
+    }
     if (editing) {
-      updateSegment(tripId, segment.id, { city: city.trim(), country: country.trim(), arrivalDate, departureDate })
+      updateSegment(tripId, segment.id, fields)
     } else {
-      addSegment(tripId, { city: city.trim(), country: country.trim(), arrivalDate, departureDate })
+      addSegment(tripId, fields)
     }
     onClose()
   }
@@ -65,61 +76,39 @@ export default function AddCityForm({ tripId, segment, onClose }: Props) {
         </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div className="flex gap-4">
-            <div className="flex flex-1 flex-col gap-2">
-              <label style={labelStyle}>City</label>
-              <input
-                autoFocus
-                type="text"
-                placeholder="Bangkok"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full px-4 py-3 text-sm outline-none"
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-              />
-            </div>
-            <div className="flex flex-1 flex-col gap-2">
-              <label style={labelStyle}>Country</label>
-              <input
-                type="text"
-                placeholder="Thailand"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-full px-4 py-3 text-sm outline-none"
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-              />
-            </div>
+          <div className="flex flex-col gap-2">
+            <label style={labelStyle}>Destination</label>
+            <DestinationInput
+              autoFocus
+              value={city}
+              onChange={(v) => { setCity(v); setLat(undefined); setLng(undefined) }}
+              onSelect={(d) => { setCity(d.city); setCountry(d.country); setLat(d.lat); setLng(d.lng) }}
+              placeholder="Search city or country…"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label style={labelStyle}>Country</label>
+            <input
+              type="text"
+              placeholder="Thailand"
+              value={country}
+              onChange={(e) => { setCountry(e.target.value); setLat(undefined); setLng(undefined) }}
+              className="w-full px-4 py-3 text-sm outline-none"
+              style={inputStyle}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+            />
           </div>
 
           <div className="flex gap-4">
             <div className="flex flex-1 flex-col gap-2">
               <label style={labelStyle}>Arrival</label>
-              <input
-                type="date"
-                value={arrivalDate}
-                onChange={(e) => setArrivalDate(e.target.value)}
-                className="w-full px-4 py-3 text-sm outline-none"
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-              />
+              <DatePicker value={arrivalDate} onChange={setArrivalDate} placeholder="Arrival date" />
             </div>
             <div className="flex flex-1 flex-col gap-2">
               <label style={labelStyle}>Departure</label>
-              <input
-                type="date"
-                value={departureDate}
-                min={arrivalDate}
-                onChange={(e) => setDepartureDate(e.target.value)}
-                className="w-full px-4 py-3 text-sm outline-none"
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-              />
+              <DatePicker value={departureDate} onChange={setDepartureDate} min={arrivalDate || undefined} placeholder="Departure date" />
             </div>
           </div>
 

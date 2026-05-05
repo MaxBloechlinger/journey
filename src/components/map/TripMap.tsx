@@ -50,6 +50,7 @@ interface Props {
 
 export default function TripMap({ trip }: Props) {
   const updateSegment = useTripStore((s) => s.updateSegment)
+  const setOriginCity = useTripStore((s) => s.setOriginCity)
   const activeSegmentId = useUIStore((s) => s.activeSegmentId)
   const setActiveSegment = useUIStore((s) => s.setActiveSegment)
   const geocodingRef = useRef<Set<string>>(new Set())
@@ -71,22 +72,47 @@ export default function TripMap({ trip }: Props) {
         if (coords && !cancelled) {
           updateSegment(trip.id, segment.id, coords)
         }
-        await sleep(1100) // Nominatim rate limit: 1 req/s
+        await sleep(1100)
       }
     }
     run()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      pending.forEach((s) => geocodingRef.current.delete(s.id))
+    }
   }, [trip.segments, trip.id, updateSegment])
+
+  // Auto-geocode origin city if it has no coordinates
+  useEffect(() => {
+    if (!trip.originCity || trip.originLat !== undefined) return
+    const key = `origin:${trip.id}`
+    if (geocodingRef.current.has(key)) return
+    geocodingRef.current.add(key)
+    let cancelled = false
+    geocodeCity(trip.originCity, trip.originCountry ?? '').then((coords) => {
+      if (coords && !cancelled) {
+        setOriginCity(trip.id, trip.originCity!, trip.originCountry, coords.lat, coords.lng)
+      }
+    })
+    return () => {
+      cancelled = true
+      geocodingRef.current.delete(key)
+    }
+  }, [trip.originCity, trip.originCountry, trip.originLat, trip.id, setOriginCity])
 
   const geocoded = trip.segments.filter(
     (s): s is typeof s & { lat: number; lng: number } =>
       s.lat !== undefined && s.lng !== undefined
   )
 
-  const positions = geocoded.map((s) => [s.lat, s.lng] as [number, number])
+  const hasOrigin = trip.originLat !== undefined && trip.originLng !== undefined
+  const originPos = hasOrigin ? [trip.originLat!, trip.originLng!] as [number, number] : null
+
+  const segmentPositions = geocoded.map((s) => [s.lat, s.lng] as [number, number])
+  const positions = originPos ? [originPos, ...segmentPositions] : segmentPositions
 
   return (
-    <div style={{ width: '40%', borderRight: '1px solid var(--border)' }}>
+    <div style={{ width: '40%', borderRight: '1px solid var(--border)', isolation: 'isolate' }}>
       <MapContainer
         center={[20, 100]}
         zoom={3}
@@ -104,6 +130,13 @@ export default function TripMap({ trip }: Props) {
           <Polyline
             positions={positions}
             pathOptions={{ color: '#e8ff47', weight: 1.5, opacity: 0.6, dashArray: '6 4' }}
+          />
+        )}
+
+        {originPos && trip.originCity && (
+          <Marker
+            position={originPos}
+            icon={cityIcon(trip.originCity, false)}
           />
         )}
 

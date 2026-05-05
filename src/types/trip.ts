@@ -70,6 +70,9 @@ export interface Trip {
   currency: Currency
   segments: CitySegment[]
   originCity?: string
+  originCountry?: string
+  originLat?: number
+  originLng?: number
   transitToFirst?: Transit
   transitFromLast?: Transit
   createdAt: string

@@ -42,7 +42,7 @@ interface TripStore {
   removeTransitToNext: (tripId: string, segmentId: string) => void
 
   // Origin / return actions
-  setOriginCity: (tripId: string, originCity: string) => void
+  setOriginCity: (tripId: string, city: string, country?: string, lat?: number, lng?: number) => void
   setTransitToFirst: (tripId: string, transit: Omit<Transit, 'id'>) => void
   removeTransitToFirst: (tripId: string) => void
   setTransitFromLast: (tripId: string, transit: Omit<Transit, 'id'>) => void
@@ -224,11 +224,14 @@ export const useTripStore = create<TripStore>()(
           })),
         })),
 
-      setOriginCity: (tripId, originCity) =>
+      setOriginCity: (tripId, city, country, lat, lng) =>
         set((s) => ({
           trips: updateTrips(s.trips, tripId, (t) => ({
             ...t,
-            originCity,
+            originCity: city,
+            originCountry: country,
+            originLat: lat,
+            originLng: lng,
             updatedAt: new Date().toISOString(),
           })),
         })),
@@ -247,6 +250,9 @@ export const useTripStore = create<TripStore>()(
           trips: updateTrips(s.trips, tripId, (t) => ({
             ...t,
             originCity: undefined,
+            originCountry: undefined,
+            originLat: undefined,
+            originLng: undefined,
             transitToFirst: undefined,
             updatedAt: new Date().toISOString(),
           })),

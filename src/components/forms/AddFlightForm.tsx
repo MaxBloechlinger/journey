@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { TransitType } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
+import DatePicker from './DatePicker'
 
 const TRANSIT_TYPES: TransitType[] = ['Flight', 'Train', 'Bus', 'Ferry', 'Other']
 
@@ -129,28 +130,11 @@ export default function AddFlightForm({ tripId, segmentId, fromCity, toCity, onC
           <div className="flex gap-4">
             <div className="flex flex-1 flex-col gap-2">
               <label style={labelStyle}>Departure Date</label>
-              <input
-                type="date"
-                value={departureDate}
-                onChange={(e) => setDepartureDate(e.target.value)}
-                className="w-full px-4 py-3 text-sm outline-none"
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-              />
+              <DatePicker value={departureDate} onChange={setDepartureDate} placeholder="Departure date" />
             </div>
             <div className="flex flex-1 flex-col gap-2">
               <label style={labelStyle}>Arrival Date</label>
-              <input
-                type="date"
-                value={arrivalDate}
-                min={departureDate}
-                onChange={(e) => setArrivalDate(e.target.value)}
-                className="w-full px-4 py-3 text-sm outline-none"
-                style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-              />
+              <DatePicker value={arrivalDate} onChange={setArrivalDate} min={departureDate || undefined} placeholder="Arrival date" />
             </div>
           </div>
 
