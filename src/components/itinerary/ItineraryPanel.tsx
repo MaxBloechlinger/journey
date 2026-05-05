@@ -1,5 +1,14 @@
 import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { Transit, Trip } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
 import CitySegmentCard from './CitySegmentCard'
@@ -72,9 +81,20 @@ function BoundaryTransitRow({
 export default function ItineraryPanel({ trip }: Props) {
   const removeTransitToFirst = useTripStore((s) => s.removeTransitToFirst)
   const removeTransitFromLast = useTripStore((s) => s.removeTransitFromLast)
+  const reorderSegments = useTripStore((s) => s.reorderSegments)
   const [addingCity, setAddingCity] = useState(false)
   const [addingOriginFlight, setAddingOriginFlight] = useState(false)
   const [addingReturnFlight, setAddingReturnFlight] = useState(false)
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = trip.segments.findIndex((s) => s.id === active.id)
+    const newIndex = trip.segments.findIndex((s) => s.id === over.id)
+    reorderSegments(trip.id, arrayMove(trip.segments, oldIndex, newIndex).map((s) => s.id))
+  }
 
   const firstCity = trip.segments[0]?.city
   const lastSegment = trip.segments[trip.segments.length - 1]
@@ -130,23 +150,27 @@ export default function ItineraryPanel({ trip }: Props) {
           </div>
         ) : (
           <>
-            <div className="flex flex-col gap-3">
-              {trip.segments.map((segment, i) => (
-                <div key={segment.id}>
-                  <CitySegmentCard trip={trip} segment={segment} index={i} />
-                  {i < trip.segments.length - 1 && (
-                    <div className="py-2">
-                      <TransitCard
-                        tripId={trip.id}
-                        segment={segment}
-                        nextCity={trip.segments[i + 1].city}
-                        currency={trip.currency}
-                      />
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={trip.segments.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col gap-3">
+                  {trip.segments.map((segment, i) => (
+                    <div key={segment.id}>
+                      <CitySegmentCard trip={trip} segment={segment} index={i} />
+                      {i < trip.segments.length - 1 && (
+                        <div className="py-2">
+                          <TransitCard
+                            tripId={trip.id}
+                            segment={segment}
+                            nextCity={trip.segments[i + 1].city}
+                            currency={trip.currency}
+                          />
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
 
             {/* Return flight — below last city */}
             {lastSegment && (

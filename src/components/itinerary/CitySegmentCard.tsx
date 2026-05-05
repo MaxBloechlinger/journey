@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Trash2, Plus, Pencil } from 'lucide-react'
+import { Trash2, Plus, Pencil, GripVertical } from 'lucide-react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import type { CitySegment, Trip } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
 import { useUIStore } from '../../store/uiStore'
@@ -33,11 +35,19 @@ export default function CitySegmentCard({ trip, segment, index }: Props) {
   const [editing, setEditing] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: segment.id })
+
   const isActive = segment.id === activeSegmentId
   const nightCount = nights(segment)
   const accCost = accommodationCost(segment)
   const actCost = activityCost(segment)
   const total = cityCost(segment)
+
+  // Combine scroll ref and dnd-kit ref
+  const setRefs = (el: HTMLDivElement | null) => {
+    setNodeRef(el)
+    ;(cardRef as React.RefObject<HTMLDivElement | null>).current = el
+  }
 
   useEffect(() => {
     if (isActive && cardRef.current) {
@@ -48,19 +58,33 @@ export default function CitySegmentCard({ trip, segment, index }: Props) {
   return (
     <>
       <div
-        ref={cardRef}
+        ref={setRefs}
         style={{
           border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
           background: 'var(--bg-surface)',
-          transition: 'border-color 0.2s',
+          transition: `border-color 0.2s, ${transition ?? ''}`,
+          transform: CSS.Transform.toString(transform),
+          opacity: isDragging ? 0.4 : 1,
+          position: 'relative',
+          zIndex: isDragging ? 1 : 'auto',
         }}
       >
         {/* City header */}
         <div
-          className="flex items-start justify-between px-6 py-4"
+          className="flex items-start justify-between px-4 py-4"
           style={{ borderBottom: '1px solid var(--border)' }}
         >
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3">
+            {/* Drag handle */}
+            <button
+              {...attributes}
+              {...listeners}
+              className="mt-1 shrink-0 cursor-grab active:cursor-grabbing"
+              style={{ color: 'var(--text-muted)', background: 'none', border: 'none', padding: '0 2px', touchAction: 'none' }}
+              aria-label="Drag to reorder"
+            >
+              <GripVertical size={14} />
+            </button>
             <span
               className="mt-0.5 shrink-0 text-xs font-bold"
               style={{ fontFamily: 'var(--font-display)', color: 'var(--accent)', minWidth: 20 }}
