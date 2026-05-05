@@ -10,7 +10,6 @@ interface Props {
 
 export default function CreateTripModal({ onClose }: Props) {
   const createTrip = useTripStore((s) => s.createTrip)
-  const setActiveTrip = useTripStore((s) => s.setActiveTrip)
 
   const [name, setName] = useState('')
   const [budget, setBudget] = useState('')

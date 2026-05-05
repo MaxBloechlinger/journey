@@ -3,6 +3,7 @@ import TripList from './components/home/TripList'
 import Header from './components/layout/Header'
 import TripMap from './components/map/TripMap'
 import ItineraryPanel from './components/itinerary/ItineraryPanel'
+import AISidebar from './components/ai/AISidebar'
 
 function App() {
   const activeTripId = useTripStore((s) => s.activeTripId)
@@ -16,6 +17,7 @@ function App() {
         <div className="flex flex-1 overflow-hidden">
           <TripMap trip={activeTrip} />
           <ItineraryPanel trip={activeTrip} />
+          <AISidebar trip={activeTrip} />
         </div>
       </div>
     )
