@@ -39,7 +39,9 @@ export default function AISidebar({ trip }: Props) {
   const submit = async (text: string) => {
     const trimmed = text.trim()
     if (!trimmed || loading) return
-    if (!apiKey) {
+      if (!import.meta.env.DEV && !apiKey) {
+      // prod — no key needed, /api/chat handles it
+    } else if (import.meta.env.DEV && !apiKey) {
       setError('No API key found. Add VITE_ANTHROPIC_API_KEY to .env.local')
       return
     }

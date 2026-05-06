@@ -65,24 +65,41 @@ export type ChatMessage = { role: 'user' | 'assistant'; content: string }
 export async function sendMessage(
   messages: ChatMessage[],
   trip: Trip,
-  apiKey: string,
+  apiKey: string | undefined,
   onChunk: (text: string) => void
 ): Promise<void> {
-  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
+  const systemPrompt = buildSystemPrompt(trip)
 
-  const stream = client.messages.stream({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    system: buildSystemPrompt(trip),
-    messages,
-  })
-
-  for await (const event of stream) {
-    if (
-      event.type === 'content_block_delta' &&
-      event.delta.type === 'text_delta'
-    ) {
-      onChunk(event.delta.text)
+  if (import.meta.env.DEV && apiKey) {
+    const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
+    const stream = client.messages.stream({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages,
+    })
+    for await (const event of stream) {
+      if (
+        event.type === 'content_block_delta' &&
+        event.delta.type === 'text_delta'
+      ) {
+        onChunk(event.delta.text)
+      }
     }
+    return
+  }
+
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, systemPrompt }),
+  })
+  if (!res.ok) throw new Error(`API error ${res.status}`)
+  const reader = res.body!.getReader()
+  const decoder = new TextDecoder()
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    onChunk(decoder.decode(value, { stream: true }))
   }
 }
