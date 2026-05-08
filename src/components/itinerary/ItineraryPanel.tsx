@@ -100,7 +100,7 @@ export default function ItineraryPanel({ trip }: Props) {
   const lastSegment = trip.segments[trip.segments.length - 1]
 
   return (
-    <div className="flex flex-col overflow-y-auto" style={{ width: '60%' }}>
+    <div className="flex flex-1 flex-col overflow-y-auto">
       <div className="flex flex-col gap-0 p-6">
 
         {/* Outbound flight — above first city */}

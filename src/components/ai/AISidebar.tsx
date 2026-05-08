@@ -3,6 +3,7 @@ import { X, Send, Loader } from 'lucide-react'
 import type { Trip } from '../../types/trip'
 import { useUIStore } from '../../store/uiStore'
 import { sendMessage, type ChatMessage } from '../../utils/claude'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 const SUGGESTED_PROMPTS = [
   'Is this trip realistic for my budget?',
@@ -26,6 +27,7 @@ export default function AISidebar({ trip }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  const isMobile = useIsMobile()
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
 
   useEffect(() => {
@@ -87,7 +89,10 @@ export default function AISidebar({ trip }: Props) {
   return (
     <div
       className="flex flex-col shrink-0"
-      style={{
+      style={isMobile ? {
+        position: 'fixed', inset: 0, zIndex: 100,
+        background: 'var(--bg-surface)',
+      } : {
         width: 360,
         borderLeft: '1px solid var(--border)',
         background: 'var(--bg-surface)',

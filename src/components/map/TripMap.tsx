@@ -5,6 +5,7 @@ import type { Trip } from '../../types/trip'
 import { useTripStore } from '../../store/tripStore'
 import { useUIStore } from '../../store/uiStore'
 import { geocodeCity, sleep } from '../../utils/geocode'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 // Custom marker — pure HTML, no broken image issue in Vite
 const cityIcon = (label: string, active: boolean) =>
@@ -49,6 +50,8 @@ interface Props {
 }
 
 export default function TripMap({ trip }: Props) {
+  const isMobile = useIsMobile()
+  if (isMobile) return null
   const updateSegment = useTripStore((s) => s.updateSegment)
   const setOriginCity = useTripStore((s) => s.setOriginCity)
   const activeSegmentId = useUIStore((s) => s.activeSegmentId)

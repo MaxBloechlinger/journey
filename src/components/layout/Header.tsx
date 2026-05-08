@@ -4,6 +4,7 @@ import { useTripStore } from '../../store/tripStore'
 import { useUIStore } from '../../store/uiStore'
 import { budgetSummary } from '../../utils/budget'
 import type { Currency, Trip } from '../../types/trip'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 const CURRENCIES: Currency[] = ['EUR', 'CHF', 'USD', 'GBP', 'JPY', 'THB', 'KRW']
 
@@ -15,6 +16,7 @@ export default function Header({ trip }: Props) {
   const setActiveTrip = useTripStore((s) => s.setActiveTrip)
   const updateTrip = useTripStore((s) => s.updateTrip)
   const toggleAISidebar = useUIStore((s) => s.toggleAISidebar)
+  const isMobile = useIsMobile()
   const summary = budgetSummary(trip)
 
   const [editingBudget, setEditingBudget] = useState(false)
@@ -39,6 +41,70 @@ export default function Header({ trip }: Props) {
   const handleBudgetKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') commitBudget()
     if (e.key === 'Escape') setEditingBudget(false)
+  }
+
+  if (isMobile) {
+    return (
+      <header
+        className="flex shrink-0 flex-col"
+        style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }}
+      >
+        {/* Row 1: back + name + AI */}
+        <div className="flex items-center justify-between gap-2 px-4" style={{ height: 48 }}>
+          <button
+            onClick={() => setActiveTrip(null)}
+            className="shrink-0 text-xs uppercase tracking-widest"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--text-secondary)' }}
+          >
+            ←
+          </button>
+          <span
+            className="flex-1 truncate text-sm font-bold text-center"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
+          >
+            {trip.name.toUpperCase()}
+          </span>
+          <button
+            onClick={toggleAISidebar}
+            className="shrink-0 px-3 py-1 text-xs font-bold uppercase tracking-widest"
+            style={{ border: '1px solid var(--accent)', color: 'var(--accent)', fontFamily: 'var(--font-display)' }}
+          >
+            ✦ AI
+          </button>
+        </div>
+        {/* Row 2: budget bar */}
+        <div
+          className="flex items-center gap-2 px-4 pb-2"
+          style={{ fontFamily: 'var(--font-display)', fontSize: 11 }}
+        >
+          <span style={{ color }}>{trip.currency} {summary.totalCost.toLocaleString()}</span>
+          <div className="flex-1 overflow-hidden" style={{ height: 2, background: 'var(--border)' }}>
+            <div style={{ width: `${pct}%`, height: '100%', background: color, transition: 'width 0.4s ease' }} />
+          </div>
+          <button
+            onClick={startEditing}
+            className="flex items-center gap-1"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {editingBudget ? (
+              <input
+                autoFocus
+                type="number"
+                min="1"
+                value={budgetInput}
+                onChange={(e) => setBudgetInput(e.target.value)}
+                onBlur={commitBudget}
+                onKeyDown={handleBudgetKeyDown}
+                className="w-16 bg-transparent outline-none text-right"
+                style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--text-primary)', borderBottom: '1px solid var(--border-strong)' }}
+              />
+            ) : (
+              <>{trip.totalBudget.toLocaleString()} <Pencil size={8} /></>
+            )}
+          </button>
+        </div>
+      </header>
+    )
   }
 
   return (
