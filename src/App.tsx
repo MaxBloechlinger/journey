@@ -16,7 +16,7 @@ function App() {
   const { user, loading, setSession } = useAuthStore()
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session)).catch(() => setSession(null))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
@@ -26,7 +26,7 @@ function App() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: 'var(--bg-base)' }}>
-        <span className="text-xs uppercase tracking-widest" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}>
+        <span className="text-xs uppercase tracking-widest" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-secondary)' }}>
           Loading…
         </span>
       </div>
