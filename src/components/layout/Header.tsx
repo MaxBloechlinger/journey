@@ -17,7 +17,9 @@ export default function Header({ trip }: Props) {
   const setActiveTrip = useTripStore((s) => s.setActiveTrip)
   const updateTrip = useTripStore((s) => s.updateTrip)
   const toggleAISidebar = useUIStore((s) => s.toggleAISidebar)
+  const openAuthModal = useUIStore((s) => s.openAuthModal)
   const signOut = useAuthStore((s) => s.signOut)
+  const user = useAuthStore((s) => s.user)
   const isMobile = useIsMobile()
   const summary = budgetSummary(trip)
 
@@ -74,9 +76,15 @@ export default function Header({ trip }: Props) {
             >
               ✦ AI
             </button>
-            <button onClick={signOut} className="p-1 hover:opacity-60" style={{ color: 'var(--text-muted)' }}>
-              <LogOut size={14} />
-            </button>
+            {user ? (
+              <button onClick={signOut} className="p-1 hover:opacity-60" style={{ color: 'var(--text-muted)' }}>
+                <LogOut size={14} />
+              </button>
+            ) : (
+              <button onClick={openAuthModal} className="text-xs hover:opacity-70 transition-opacity" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}>
+                Sign In
+              </button>
+            )}
           </div>
         </div>
         {/* Row 2: budget bar */}
@@ -211,9 +219,15 @@ export default function Header({ trip }: Props) {
         >
           ✦ Ask AI
         </button>
-        <button onClick={signOut} className="p-1 hover:opacity-60 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Sign out">
-          <LogOut size={14} />
-        </button>
+        {user ? (
+          <button onClick={signOut} className="p-1 hover:opacity-60 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Sign out">
+            <LogOut size={14} />
+          </button>
+        ) : (
+          <button onClick={openAuthModal} className="text-xs hover:opacity-70 transition-opacity" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}>
+            Sign In
+          </button>
+        )}
       </div>
     </header>
   )

@@ -1,22 +1,28 @@
 import { useEffect } from 'react'
 import { useTripStore } from './store/tripStore'
 import { useAuthStore } from './store/authStore'
+import { useUIStore } from './store/uiStore'
 import { supabase } from './lib/supabase'
 import TripList from './components/home/TripList'
 import Header from './components/layout/Header'
 import TripMap from './components/map/TripMap'
 import ItineraryPanel from './components/itinerary/ItineraryPanel'
 import AISidebar from './components/ai/AISidebar'
-import LoginScreen from './components/auth/LoginScreen'
+import AuthModal from './components/auth/AuthModal'
+import SavePromptBanner from './components/auth/SavePromptBanner'
 
 function App() {
   const activeTripId = useTripStore((s) => s.activeTripId)
   const trips = useTripStore((s) => s.trips)
   const activeTrip = trips.find((t) => t.id === activeTripId)
   const { user, loading, setSession } = useAuthStore()
+  const authModalOpen = useUIStore((s) => s.authModalOpen)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session)).catch(() => setSession(null))
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => setSession(session))
+      .catch(() => setSession(null))
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
@@ -33,7 +39,7 @@ function App() {
     )
   }
 
-  if (!user) return <LoginScreen />
+  const showSaveBanner = !user && trips.length > 0
 
   if (activeTrip) {
     return (
@@ -44,11 +50,19 @@ function App() {
           <ItineraryPanel trip={activeTrip} />
           <AISidebar trip={activeTrip} />
         </div>
+        {showSaveBanner && <SavePromptBanner />}
+        {authModalOpen && <AuthModal />}
       </div>
     )
   }
 
-  return <TripList />
+  return (
+    <>
+      <TripList />
+      {showSaveBanner && <SavePromptBanner />}
+      {authModalOpen && <AuthModal />}
+    </>
+  )
 }
 
 export default App
