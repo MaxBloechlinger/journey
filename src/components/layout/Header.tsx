@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, LogOut } from 'lucide-react'
+import { Pencil, UserCircle } from 'lucide-react'
 import { useTripStore } from '../../store/tripStore'
 import { useUIStore } from '../../store/uiStore'
 import { useAuthStore } from '../../store/authStore'
@@ -76,15 +76,14 @@ export default function Header({ trip }: Props) {
             >
               ✦ AI
             </button>
-            {user ? (
-              <button onClick={signOut} className="p-1 hover:opacity-60" style={{ color: 'var(--text-muted)' }}>
-                <LogOut size={14} />
-              </button>
-            ) : (
-              <button onClick={openAuthModal} className="text-xs hover:opacity-70 transition-opacity" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}>
-                Sign In
-              </button>
-            )}
+            <button
+              onClick={user ? signOut : openAuthModal}
+              className="p-1 hover:opacity-60 transition-opacity"
+              style={{ color: user ? 'var(--accent)' : 'var(--text-muted)' }}
+              title={user ? 'Sign out' : 'Sign in'}
+            >
+              <UserCircle size={16} />
+            </button>
           </div>
         </div>
         {/* Row 2: budget bar */}
@@ -219,15 +218,14 @@ export default function Header({ trip }: Props) {
         >
           ✦ Ask AI
         </button>
-        {user ? (
-          <button onClick={signOut} className="p-1 hover:opacity-60 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Sign out">
-            <LogOut size={14} />
-          </button>
-        ) : (
-          <button onClick={openAuthModal} className="text-xs hover:opacity-70 transition-opacity" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}>
-            Sign In
-          </button>
-        )}
+        <button
+          onClick={user ? signOut : openAuthModal}
+          className="p-1 hover:opacity-60 transition-opacity"
+          style={{ color: user ? 'var(--accent)' : 'var(--text-muted)' }}
+          title={user ? 'Sign out' : 'Sign in'}
+        >
+          <UserCircle size={16} />
+        </button>
       </div>
     </header>
   )
