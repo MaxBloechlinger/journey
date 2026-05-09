@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Pencil } from 'lucide-react'
+import { Pencil, LogOut } from 'lucide-react'
 import { useTripStore } from '../../store/tripStore'
 import { useUIStore } from '../../store/uiStore'
+import { useAuthStore } from '../../store/authStore'
 import { budgetSummary } from '../../utils/budget'
 import type { Currency, Trip } from '../../types/trip'
 import { useIsMobile } from '../../hooks/useIsMobile'
@@ -16,6 +17,7 @@ export default function Header({ trip }: Props) {
   const setActiveTrip = useTripStore((s) => s.setActiveTrip)
   const updateTrip = useTripStore((s) => s.updateTrip)
   const toggleAISidebar = useUIStore((s) => s.toggleAISidebar)
+  const signOut = useAuthStore((s) => s.signOut)
   const isMobile = useIsMobile()
   const summary = budgetSummary(trip)
 
@@ -64,13 +66,18 @@ export default function Header({ trip }: Props) {
           >
             {trip.name.toUpperCase()}
           </span>
-          <button
-            onClick={toggleAISidebar}
-            className="shrink-0 px-3 py-1 text-xs font-bold uppercase tracking-widest"
-            style={{ border: '1px solid var(--accent)', color: 'var(--accent)', fontFamily: 'var(--font-display)' }}
-          >
-            ✦ AI
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleAISidebar}
+              className="shrink-0 px-3 py-1 text-xs font-bold uppercase tracking-widest"
+              style={{ border: '1px solid var(--accent)', color: 'var(--accent)', fontFamily: 'var(--font-display)' }}
+            >
+              ✦ AI
+            </button>
+            <button onClick={signOut} className="p-1 hover:opacity-60" style={{ color: 'var(--text-muted)' }}>
+              <LogOut size={14} />
+            </button>
+          </div>
         </div>
         {/* Row 2: budget bar */}
         <div
@@ -196,13 +203,18 @@ export default function Header({ trip }: Props) {
       </div>
 
       {/* Right */}
-      <button
-        onClick={toggleAISidebar}
-        className="shrink-0 px-4 py-1.5 text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-opacity"
-        style={{ border: '1px solid var(--accent)', color: 'var(--accent)', fontFamily: 'var(--font-display)' }}
-      >
-        ✦ Ask AI
-      </button>
+      <div className="flex shrink-0 items-center gap-3">
+        <button
+          onClick={toggleAISidebar}
+          className="px-4 py-1.5 text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-opacity"
+          style={{ border: '1px solid var(--accent)', color: 'var(--accent)', fontFamily: 'var(--font-display)' }}
+        >
+          ✦ Ask AI
+        </button>
+        <button onClick={signOut} className="p-1 hover:opacity-60 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Sign out">
+          <LogOut size={14} />
+        </button>
+      </div>
     </header>
   )
 }
