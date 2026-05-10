@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, UserCircle } from 'lucide-react'
+import { Pencil, UserCircle, Map } from 'lucide-react'
 import { useTripStore } from '../../store/tripStore'
 import { useUIStore } from '../../store/uiStore'
 import { useAuthStore } from '../../store/authStore'
@@ -18,6 +18,8 @@ export default function Header({ trip }: Props) {
   const updateTrip = useTripStore((s) => s.updateTrip)
   const toggleAISidebar = useUIStore((s) => s.toggleAISidebar)
   const openAuthModal = useUIStore((s) => s.openAuthModal)
+  const toggleMobileMap = useUIStore((s) => s.toggleMobileMap)
+  const mobileMapOpen = useUIStore((s) => s.mobileMapOpen)
   const signOut = useAuthStore((s) => s.signOut)
   const user = useAuthStore((s) => s.user)
   const isMobile = useIsMobile()
@@ -69,6 +71,14 @@ export default function Header({ trip }: Props) {
             {trip.name.toUpperCase()}
           </span>
           <div className="flex items-center gap-2">
+            <button
+              onClick={toggleMobileMap}
+              className="p-1 hover:opacity-60 transition-opacity"
+              style={{ color: mobileMapOpen ? 'var(--accent)' : 'var(--text-muted)' }}
+              title="Toggle map"
+            >
+              <Map size={15} />
+            </button>
             <button
               onClick={toggleAISidebar}
               className="shrink-0 px-3 py-1 text-xs font-bold uppercase tracking-widest"
