@@ -51,7 +51,8 @@ interface Props {
 
 export default function TripMap({ trip }: Props) {
   const isMobile = useIsMobile()
-  if (isMobile) return null
+  const mobileMapOpen = useUIStore((s) => s.mobileMapOpen)
+  if (isMobile && !mobileMapOpen) return null
   const updateSegment = useTripStore((s) => s.updateSegment)
   const setOriginCity = useTripStore((s) => s.setOriginCity)
   const activeSegmentId = useUIStore((s) => s.activeSegmentId)
@@ -115,7 +116,10 @@ export default function TripMap({ trip }: Props) {
   const positions = originPos ? [originPos, ...segmentPositions] : segmentPositions
 
   return (
-    <div style={{ width: '40%', borderRight: '1px solid var(--border)', isolation: 'isolate' }}>
+    <div style={isMobile
+      ? { width: '100%', height: 220, borderBottom: '1px solid var(--border)', isolation: 'isolate', flexShrink: 0 }
+      : { width: '40%', borderRight: '1px solid var(--border)', isolation: 'isolate' }
+    }>
       <MapContainer
         center={[20, 100]}
         zoom={3}
