@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { ArrowRight, Plus, Trash2 } from 'lucide-react'
+import { ArrowRight, Plus, Trash2, UserCircle } from 'lucide-react'
 import { useTripStore } from '../../store/tripStore'
+import { useAuthStore } from '../../store/authStore'
+import { useUIStore } from '../../store/uiStore'
 import { formatDate } from '../../utils/dates'
 import CreateTripModal from './CreateTripModal'
 
@@ -8,6 +10,9 @@ export default function TripList() {
   const trips = useTripStore((s) => s.trips)
   const deleteTrip = useTripStore((s) => s.deleteTrip)
   const setActiveTrip = useTripStore((s) => s.setActiveTrip)
+  const user = useAuthStore((s) => s.user)
+  const signOut = useAuthStore((s) => s.signOut)
+  const openAuthModal = useUIStore((s) => s.openAuthModal)
   const [showModal, setShowModal] = useState(false)
 
   return (
@@ -23,18 +28,24 @@ export default function TripList() {
         >
           JOURNEY
         </span>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest transition-opacity hover:opacity-80"
-          style={{
-            background: 'var(--accent)',
-            color: '#0a0a0a',
-            fontFamily: 'var(--font-display)',
-          }}
-        >
-          <Plus size={14} strokeWidth={2.5} />
-          New Trip
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest transition-opacity hover:opacity-80"
+            style={{ background: 'var(--accent)', color: '#0a0a0a', fontFamily: 'var(--font-display)' }}
+          >
+            <Plus size={14} strokeWidth={2.5} />
+            New Trip
+          </button>
+          <button
+            onClick={user ? signOut : openAuthModal}
+            className="p-1 hover:opacity-60 transition-opacity"
+            style={{ color: user ? 'var(--accent)' : 'var(--text-muted)' }}
+            title={user ? 'Sign out' : 'Sign in'}
+          >
+            <UserCircle size={18} />
+          </button>
+        </div>
       </header>
 
       {/* Trip list */}
