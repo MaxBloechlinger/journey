@@ -14,6 +14,8 @@ interface TripStore {
   trips: Trip[]
   activeTripId: string | null
 
+  setTrips: (trips: Trip[]) => void
+
   // Trip actions
   createTrip: (name: string, budget: number, currency: Currency) => void
   updateTrip: (tripId: string, updates: Partial<Pick<Trip, 'name' | 'totalBudget' | 'currency'>>) => void
@@ -72,6 +74,8 @@ export const useTripStore = create<TripStore>()(
     (set) => ({
       trips: [],
       activeTripId: null,
+
+      setTrips: (trips) => set({ trips }),
 
       createTrip: (name, budget, currency) =>
         set((s) => ({
