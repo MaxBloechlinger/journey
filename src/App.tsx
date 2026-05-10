@@ -47,7 +47,7 @@ function App() {
     return (
       <div className="flex flex-col" style={{ height: '100vh', background: 'var(--bg-base)' }}>
         <Header trip={activeTrip} />
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
           <TripMap trip={activeTrip} />
           <ItineraryPanel trip={activeTrip} />
           <AISidebar trip={activeTrip} />
