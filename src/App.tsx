@@ -10,12 +10,14 @@ import ItineraryPanel from './components/itinerary/ItineraryPanel'
 import AISidebar from './components/ai/AISidebar'
 import AuthModal from './components/auth/AuthModal'
 import SavePromptBanner from './components/auth/SavePromptBanner'
+import { useTripSync } from './hooks/useTripSync'
 
 function App() {
   const activeTripId = useTripStore((s) => s.activeTripId)
   const trips = useTripStore((s) => s.trips)
   const activeTrip = trips.find((t) => t.id === activeTripId)
   const { user, loading, setSession } = useAuthStore()
+  useTripSync()
   const authModalOpen = useUIStore((s) => s.authModalOpen)
 
   useEffect(() => {
