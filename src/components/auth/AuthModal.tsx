@@ -29,15 +29,20 @@ export default function AuthModal() {
       // on success, onAuthStateChange in App.tsx will update auth state and close modal isn't needed —
       // the banner will disappear automatically when user is set
     } else {
-      const { error } = await supabase.auth.signUp({ email: email.trim(), password })
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { emailRedirectTo: window.location.origin },
+      })
       if (error) {
         setError(error.message)
-        setLoading(false)
+      } else if (data.user?.identities?.length === 0) {
+        setError('An account with this email already exists.')
       } else {
         setMessage('Account created! Check your email to confirm, then sign in.')
         setMode('signin')
-        setLoading(false)
       }
+      setLoading(false)
     }
   }
 
