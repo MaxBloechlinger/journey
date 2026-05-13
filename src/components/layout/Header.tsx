@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, UserCircle, Map } from 'lucide-react'
+import { Pencil, UserCircle, Map, Download } from 'lucide-react'
 import { useTripStore } from '../../store/tripStore'
 import { useUIStore } from '../../store/uiStore'
 import { useAuthStore } from '../../store/authStore'
@@ -22,6 +22,17 @@ export default function Header({ trip }: Props) {
   const mobileMapOpen = useUIStore((s) => s.mobileMapOpen)
   const signOut = useAuthStore((s) => s.signOut)
   const user = useAuthStore((s) => s.user)
+
+  const exportTrip = () => {
+    const json = JSON.stringify(trip, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${trip.name.toLowerCase().replace(/\s+/g, '-')}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
   const isMobile = useIsMobile()
   const summary = budgetSummary(trip)
 
@@ -71,6 +82,9 @@ export default function Header({ trip }: Props) {
             {trip.name.toUpperCase()}
           </span>
           <div className="flex items-center gap-2">
+            <button onClick={exportTrip} className="p-1 hover:opacity-60 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Export trip">
+              <Download size={15} />
+            </button>
             <button
               onClick={toggleMobileMap}
               className="p-1 hover:opacity-60 transition-opacity"
@@ -221,6 +235,9 @@ export default function Header({ trip }: Props) {
 
       {/* Right */}
       <div className="flex shrink-0 items-center gap-3">
+        <button onClick={exportTrip} className="p-1 hover:opacity-60 transition-opacity" style={{ color: 'var(--text-muted)' }} title="Export trip">
+          <Download size={14} />
+        </button>
         <button
           onClick={toggleAISidebar}
           className="px-4 py-1.5 text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-opacity"
