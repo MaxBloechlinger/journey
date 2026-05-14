@@ -113,7 +113,10 @@ export default function TripMap({ trip }: Props) {
   const originPos = hasOrigin ? [trip.originLat!, trip.originLng!] as [number, number] : null
 
   const segmentPositions = geocoded.map((s) => [s.lat, s.lng] as [number, number])
-  const positions = originPos ? [originPos, ...segmentPositions] : segmentPositions
+  const hasReturn = trip.transitFromLast !== undefined && originPos !== null
+  const positions = originPos
+    ? [originPos, ...segmentPositions, ...(hasReturn ? [originPos] : [])]
+    : segmentPositions
 
   return (
     <div style={isMobile
