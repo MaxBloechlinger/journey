@@ -7,7 +7,7 @@ export function buildDemoTrip(): Trip {
     id: 'demo-trip-th-jp-kr',
     name: 'Thailand → Japan → Korea',
     totalBudget: 3000,
-    currency: 'EUR',
+    currency: 'CHF',
     createdAt: now,
     updatedAt: now,
     originCity: 'Zurich',
@@ -102,8 +102,8 @@ export function buildDemoTrip(): Trip {
         lng: 139.6503,
         accommodation: {
           id: 'demo-a3',
-          name: 'Khaosan Tokyo Ninja',
-          type: 'Hostel',
+          name: 'Apa Hotel Shinjuku Gyoen',
+          type: 'Hotel',
           costPerNight: 38,
         },
         activities: [
@@ -135,8 +135,8 @@ export function buildDemoTrip(): Trip {
         lng: 126.978,
         accommodation: {
           id: 'demo-a4',
-          name: 'Kimchee Guesthouse Hongdae',
-          type: 'Guesthouse',
+          name: 'Hilton Garden Inn Seoul Gangnam',
+          type: 'Hotel',
           costPerNight: 28,
         },
         activities: [
