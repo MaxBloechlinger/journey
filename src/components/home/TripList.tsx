@@ -4,16 +4,28 @@ import { useTripStore } from '../../store/tripStore'
 import { useAuthStore } from '../../store/authStore'
 import { useUIStore } from '../../store/uiStore'
 import { formatDate } from '../../utils/dates'
+import { buildDemoTrip } from '../../utils/demoTrip'
 import CreateTripModal from './CreateTripModal'
 
 export default function TripList() {
   const trips = useTripStore((s) => s.trips)
   const deleteTrip = useTripStore((s) => s.deleteTrip)
   const setActiveTrip = useTripStore((s) => s.setActiveTrip)
+  const setTrips = useTripStore((s) => s.setTrips)
   const user = useAuthStore((s) => s.user)
   const signOut = useAuthStore((s) => s.signOut)
   const openAuthModal = useUIStore((s) => s.openAuthModal)
   const [showModal, setShowModal] = useState(false)
+
+  const loadDemo = () => {
+    const demo = buildDemoTrip()
+    if (trips.some((t) => t.id === demo.id)) {
+      setActiveTrip(demo.id)
+      return
+    }
+    setTrips([...trips, demo])
+    setActiveTrip(demo.id)
+  }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
@@ -61,6 +73,13 @@ export default function TripList() {
             <p style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', fontSize: 14 }}>
               Start planning your next adventure.
             </p>
+            <button
+              onClick={loadDemo}
+              className="mt-2 px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-opacity hover:opacity-70"
+              style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)', fontFamily: 'var(--font-display)' }}
+            >
+              Load Demo Trip
+            </button>
           </div>
         ) : (
           <ul className="flex flex-col gap-3">
