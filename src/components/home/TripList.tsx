@@ -13,8 +13,8 @@ export default function TripList() {
   const setActiveTrip = useTripStore((s) => s.setActiveTrip)
   const setTrips = useTripStore((s) => s.setTrips)
   const user = useAuthStore((s) => s.user)
-  const signOut = useAuthStore((s) => s.signOut)
   const openAuthModal = useUIStore((s) => s.openAuthModal)
+  const openAccountModal = useUIStore((s) => s.openAccountModal)
   const [showModal, setShowModal] = useState(false)
 
   const loadDemo = () => {
@@ -50,7 +50,7 @@ export default function TripList() {
             New Trip
           </button>
           <button
-            onClick={user ? signOut : openAuthModal}
+            onClick={user ? openAccountModal : openAuthModal}
             className="p-1 hover:opacity-60 transition-opacity"
             style={{ color: user ? 'var(--accent)' : 'var(--text-muted)' }}
             title={user ? 'Sign out' : 'Sign in'}

@@ -18,9 +18,9 @@ export default function Header({ trip }: Props) {
   const updateTrip = useTripStore((s) => s.updateTrip)
   const toggleAISidebar = useUIStore((s) => s.toggleAISidebar)
   const openAuthModal = useUIStore((s) => s.openAuthModal)
+  const openAccountModal = useUIStore((s) => s.openAccountModal)
   const toggleMobileMap = useUIStore((s) => s.toggleMobileMap)
   const mobileMapOpen = useUIStore((s) => s.mobileMapOpen)
-  const signOut = useAuthStore((s) => s.signOut)
   const user = useAuthStore((s) => s.user)
 
   const exportTrip = () => {
@@ -101,7 +101,7 @@ export default function Header({ trip }: Props) {
               ✦ AI
             </button>
             <button
-              onClick={user ? signOut : openAuthModal}
+              onClick={user ? openAccountModal : openAuthModal}
               className="p-1 hover:opacity-60 transition-opacity"
               style={{ color: user ? 'var(--accent)' : 'var(--text-muted)' }}
               title={user ? 'Sign out' : 'Sign in'}
@@ -246,7 +246,7 @@ export default function Header({ trip }: Props) {
           ✦ Ask AI
         </button>
         <button
-          onClick={user ? signOut : openAuthModal}
+          onClick={user ? openAccountModal : openAuthModal}
           className="p-1 hover:opacity-60 transition-opacity"
           style={{ color: user ? 'var(--accent)' : 'var(--text-muted)' }}
           title={user ? 'Sign out' : 'Sign in'}

@@ -9,6 +9,7 @@ import TripMap from './components/map/TripMap'
 import ItineraryPanel from './components/itinerary/ItineraryPanel'
 import AISidebar from './components/ai/AISidebar'
 import AuthModal from './components/auth/AuthModal'
+import AccountModal from './components/auth/AccountModal'
 import SavePromptBanner from './components/auth/SavePromptBanner'
 import { useTripSync } from './hooks/useTripSync'
 
@@ -19,6 +20,7 @@ function App() {
   const { user, loading, setSession } = useAuthStore()
   useTripSync()
   const authModalOpen = useUIStore((s) => s.authModalOpen)
+  const accountModalOpen = useUIStore((s) => s.accountModalOpen)
 
   useEffect(() => {
     supabase.auth.getSession()
@@ -54,6 +56,7 @@ function App() {
         </div>
         {showSaveBanner && <SavePromptBanner />}
         {authModalOpen && <AuthModal />}
+        {accountModalOpen && <AccountModal />}
       </div>
     )
   }
@@ -63,6 +66,7 @@ function App() {
       <TripList />
       {showSaveBanner && <SavePromptBanner />}
       {authModalOpen && <AuthModal />}
+      {accountModalOpen && <AccountModal />}
     </>
   )
 }
