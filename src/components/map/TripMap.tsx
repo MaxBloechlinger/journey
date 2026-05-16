@@ -52,7 +52,6 @@ interface Props {
 export default function TripMap({ trip }: Props) {
   const isMobile = useIsMobile()
   const mobileMapOpen = useUIStore((s) => s.mobileMapOpen)
-  if (isMobile && !mobileMapOpen) return null
   const updateSegment = useTripStore((s) => s.updateSegment)
   const setOriginCity = useTripStore((s) => s.setOriginCity)
   const activeSegmentId = useUIStore((s) => s.activeSegmentId)
@@ -103,6 +102,8 @@ export default function TripMap({ trip }: Props) {
       geocodingRef.current.delete(key)
     }
   }, [trip.originCity, trip.originCountry, trip.originLat, trip.id, setOriginCity])
+
+  if (isMobile && !mobileMapOpen) return null
 
   const geocoded = trip.segments.filter(
     (s): s is typeof s & { lat: number; lng: number } =>
