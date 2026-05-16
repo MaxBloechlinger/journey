@@ -24,10 +24,10 @@ export default function AuthModal() {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
       if (error) {
         setError(error.message)
-        setLoading(false)
+      } else {
+        closeAuthModal()
       }
-      // on success, onAuthStateChange in App.tsx will update auth state and close modal isn't needed —
-      // the banner will disappear automatically when user is set
+      setLoading(false)
     } else {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
