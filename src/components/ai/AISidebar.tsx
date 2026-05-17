@@ -85,7 +85,6 @@ export default function AISidebar({ trip }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const isMobile = useIsMobile()
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -112,10 +111,6 @@ export default function AISidebar({ trip }: Props) {
   const submit = async (text: string) => {
     const trimmed = text.trim()
     if (!trimmed || loading) return
-    if (import.meta.env.DEV && !apiKey) {
-      setError('No API key found. Add VITE_ANTHROPIC_API_KEY to .env.local')
-      return
-    }
     setError(null)
     setInput('')
     setDraftTrip(null)
@@ -133,7 +128,7 @@ export default function AISidebar({ trip }: Props) {
     setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
     try {
-      await sendMessage(next, systemPrompt, apiKey, (chunk) => {
+      await sendMessage(next, systemPrompt, undefined, (chunk) => {
         assistantText += chunk
         setMessages((prev) => [
           ...prev.slice(0, -1),

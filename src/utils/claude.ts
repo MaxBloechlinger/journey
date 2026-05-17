@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { Trip } from '../types/trip'
 import { budgetSummary, nights, accommodationCost, activityCost } from './budget'
 
@@ -131,31 +130,10 @@ export type ChatMessage = { role: 'user' | 'assistant'; content: string }
 export async function sendMessage(
   messages: ChatMessage[],
   systemPrompt: string,
-  apiKey: string | undefined,
+  _apiKey: string | undefined,
   onChunk: (text: string) => void,
   maxTokens = 1024
 ): Promise<void> {
-  if (import.meta.env.DEV && apiKey) {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      systemInstruction: systemPrompt,
-    })
-    const geminiMessages = messages.map((m) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }))
-    const result = await model.generateContentStream({
-      contents: geminiMessages,
-      generationConfig: { maxOutputTokens: maxTokens },
-    })
-    for await (const chunk of result.stream) {
-      const text = chunk.text()
-      if (text) onChunk(text)
-    }
-    return
-  }
-
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
