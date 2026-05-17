@@ -1,5 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
-
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 const LIMIT = 15
 const WINDOW_MS = 60 * 60 * 1000
@@ -33,46 +31,65 @@ export default async function handler(req: any, res: any) {
     return
   }
 
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = process.env.GROQ_API_KEY
   if (!apiKey) {
-    res.status(500).json({ error: 'GEMINI_API_KEY is not configured on the server.' })
+    res.status(500).json({ error: 'GROQ_API_KEY is not configured on the server.' })
     return
   }
 
   const { messages, systemPrompt, maxTokens = 1024 } = req.body
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel(
-      { model: 'gemini-1.5-flash' },
-      { apiVersion: 'v1' }
-    )
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages,
+        ],
+        max_tokens: Math.min(Number(maxTokens), MAX_TOKENS_CAP),
+        stream: true,
+      }),
+    })
 
-    const geminiMessages = [
-      { role: 'user', parts: [{ text: systemPrompt }] },
-      { role: 'model', parts: [{ text: 'Understood.' }] },
-      ...messages.map((m: { role: string; content: string }) => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }],
-      })),
-    ]
+    if (!groqRes.ok) {
+      const err = await groqRes.json().catch(() => null)
+      res.status(groqRes.status).json({ error: (err as any)?.error?.message ?? 'Groq API error' })
+      return
+    }
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8')
 
-    const result = await model.generateContentStream({
-      contents: geminiMessages,
-      generationConfig: { maxOutputTokens: Math.min(Number(maxTokens), MAX_TOKENS_CAP) },
-    })
+    const reader = groqRes.body!.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
 
-    for await (const chunk of result.stream) {
-      const text = chunk.text()
-      if (text) res.write(text)
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const data = line.slice(6).trim()
+        if (data === '[DONE]') continue
+        try {
+          const text = JSON.parse(data).choices?.[0]?.delta?.content
+          if (text) res.write(text)
+        } catch { /* skip malformed chunks */ }
+      }
     }
 
     res.end()
   } catch (err: any) {
     if (!res.headersSent) {
-      res.status(500).json({ error: err?.message ?? 'Gemini API error' })
+      res.status(500).json({ error: err?.message ?? 'Server error' })
     } else {
       res.end()
     }
