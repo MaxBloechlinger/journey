@@ -44,14 +44,18 @@ export default async function handler(req: any, res: any) {
   try {
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel(
-      { model: 'gemini-1.5-flash', systemInstruction: systemPrompt },
+      { model: 'gemini-1.5-flash' },
       { apiVersion: 'v1' }
     )
 
-    const geminiMessages = messages.map((m: { role: string; content: string }) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }))
+    const geminiMessages = [
+      { role: 'user', parts: [{ text: systemPrompt }] },
+      { role: 'model', parts: [{ text: 'Understood.' }] },
+      ...messages.map((m: { role: string; content: string }) => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      })),
+    ]
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8')
 
