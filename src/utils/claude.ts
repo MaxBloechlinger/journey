@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { Trip } from '../types/trip'
 import { budgetSummary, nights, accommodationCost, activityCost } from './budget'
 
@@ -136,20 +136,22 @@ export async function sendMessage(
   maxTokens = 1024
 ): Promise<void> {
   if (import.meta.env.DEV && apiKey) {
-    const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
-    const stream = client.messages.stream({
-      model: 'claude-sonnet-4-6',
-      max_tokens: maxTokens,
-      system: systemPrompt,
-      messages,
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      systemInstruction: systemPrompt,
     })
-    for await (const event of stream) {
-      if (
-        event.type === 'content_block_delta' &&
-        event.delta.type === 'text_delta'
-      ) {
-        onChunk(event.delta.text)
-      }
+    const geminiMessages = messages.map((m) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }))
+    const result = await model.generateContentStream({
+      contents: geminiMessages,
+      generationConfig: { maxOutputTokens: maxTokens },
+    })
+    for await (const chunk of result.stream) {
+      const text = chunk.text()
+      if (text) onChunk(text)
     }
     return
   }

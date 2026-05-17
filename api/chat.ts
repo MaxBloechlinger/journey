@@ -1,10 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
-// In-memory rate limiter — resets on cold start, good enough for a portfolio app.
-// Swap for Vercel KV if you need persistence across instances.
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 const LIMIT = 15
-const WINDOW_MS = 60 * 60 * 1000 // 1 hour
+const WINDOW_MS = 60 * 60 * 1000
 const MAX_TOKENS_CAP = 2048
 
 function checkRateLimit(ip: string): boolean {
@@ -36,24 +34,28 @@ export default async function handler(req: any, res: any) {
   }
 
   const { messages, systemPrompt, maxTokens = 1024 } = req.body
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.0-flash',
+    systemInstruction: systemPrompt,
+  })
+
+  const geminiMessages = messages.map((m: { role: string; content: string }) => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }))
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8')
 
-  const stream = client.messages.stream({
-    model: 'claude-sonnet-4-6',
-    max_tokens: Math.min(Number(maxTokens), MAX_TOKENS_CAP),
-    system: systemPrompt,
-    messages,
+  const result = await model.generateContentStream({
+    contents: geminiMessages,
+    generationConfig: { maxOutputTokens: Math.min(Number(maxTokens), MAX_TOKENS_CAP) },
   })
 
-  for await (const event of stream) {
-    if (
-      event.type === 'content_block_delta' &&
-      event.delta.type === 'text_delta'
-    ) {
-      res.write(event.delta.text)
-    }
+  for await (const chunk of result.stream) {
+    const text = chunk.text()
+    if (text) res.write(text)
   }
 
   res.end()
