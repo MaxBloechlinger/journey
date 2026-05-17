@@ -31,10 +31,10 @@ export default defineConfig(({ mode }) => {
                 const { messages, systemPrompt, maxTokens = 1024 } = JSON.parse(body)
 
                 const genAI = new GoogleGenerativeAI(apiKey)
-                const model = genAI.getGenerativeModel({
-                  model: 'gemini-1.5-flash',
-                  systemInstruction: systemPrompt,
-                })
+                const model = genAI.getGenerativeModel(
+                  { model: 'gemini-1.5-flash', systemInstruction: systemPrompt },
+                  { apiVersion: 'v1' }
+                )
 
                 const geminiMessages = messages.map((m: { role: string; content: string }) => ({
                   role: m.role === 'assistant' ? 'model' : 'user',
