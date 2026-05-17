@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Send, Loader } from 'lucide-react'
-import type { Trip } from '../../types/trip'
+import { X, Send, Loader, Wand2 } from 'lucide-react'
+import type { Trip, CitySegment, Activity, Accommodation, Transit } from '../../types/trip'
 import { useUIStore } from '../../store/uiStore'
-import { sendMessage, type ChatMessage } from '../../utils/claude'
+import { useTripStore } from '../../store/tripStore'
+import { sendMessage, buildSystemPrompt, buildPlannerSystemPrompt, type ChatMessage } from '../../utils/claude'
 import { useIsMobile } from '../../hooks/useIsMobile'
 
 const SUGGESTED_PROMPTS = [
@@ -12,18 +13,74 @@ const SUGGESTED_PROMPTS = [
   'How does the cost breakdown compare across cities?',
 ]
 
+function extractTripJson(text: string): object | null {
+  const match = text.match(/```trip-json\s*([\s\S]*?)```/)
+  if (!match) return null
+  try {
+    return JSON.parse(match[1].trim())
+  } catch {
+    return null
+  }
+}
+
+function assignIds(raw: any): Trip {
+  const now = new Date().toISOString()
+  const id = crypto.randomUUID()
+  return {
+    id,
+    name: raw.name ?? 'New Trip',
+    totalBudget: raw.totalBudget ?? 0,
+    currency: raw.currency ?? 'EUR',
+    originCity: raw.originCity,
+    originCountry: raw.originCountry,
+    createdAt: now,
+    updatedAt: now,
+    transitToFirst: raw.transitToFirst
+      ? { id: crypto.randomUUID(), ...raw.transitToFirst }
+      : undefined,
+    transitFromLast: raw.transitFromLast
+      ? { id: crypto.randomUUID(), ...raw.transitFromLast }
+      : undefined,
+    segments: (raw.segments ?? []).map((s: any): CitySegment => ({
+      id: crypto.randomUUID(),
+      city: s.city,
+      country: s.country,
+      arrivalDate: s.arrivalDate,
+      departureDate: s.departureDate,
+      notes: s.notes,
+      accommodation: s.accommodation
+        ? ({ id: crypto.randomUUID(), ...s.accommodation } as Accommodation)
+        : undefined,
+      activities: (s.activities ?? []).map((a: any): Activity => ({
+        id: crypto.randomUUID(),
+        ...a,
+      })),
+      transitToNext: s.transitToNext
+        ? ({ id: crypto.randomUUID(), ...s.transitToNext } as Transit)
+        : undefined,
+    })),
+  }
+}
+
 interface Props {
   trip: Trip
 }
 
+type Mode = 'assistant' | 'planner'
+
 export default function AISidebar({ trip }: Props) {
   const aiSidebarOpen = useUIStore((s) => s.aiSidebarOpen)
   const toggleAISidebar = useUIStore((s) => s.toggleAISidebar)
+  const setTrips = useTripStore((s) => s.setTrips)
+  const trips = useTripStore((s) => s.trips)
+  const setActiveTrip = useTripStore((s) => s.setActiveTrip)
 
+  const [mode, setMode] = useState<Mode>('assistant')
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [draftTrip, setDraftTrip] = useState<Trip | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -38,34 +95,54 @@ export default function AISidebar({ trip }: Props) {
     if (aiSidebarOpen) textareaRef.current?.focus()
   }, [aiSidebarOpen])
 
+  const switchToPlanner = () => {
+    setMode('planner')
+    setMessages([])
+    setDraftTrip(null)
+    setError(null)
+  }
+
+  const switchToAssistant = () => {
+    setMode('assistant')
+    setMessages([])
+    setDraftTrip(null)
+    setError(null)
+  }
+
   const submit = async (text: string) => {
     const trimmed = text.trim()
     if (!trimmed || loading) return
-      if (!import.meta.env.DEV && !apiKey) {
-      // prod — no key needed, /api/chat handles it
-    } else if (import.meta.env.DEV && !apiKey) {
+    if (import.meta.env.DEV && !apiKey) {
       setError('No API key found. Add VITE_ANTHROPIC_API_KEY to .env.local')
       return
     }
     setError(null)
     setInput('')
+    setDraftTrip(null)
 
     const userMessage: ChatMessage = { role: 'user', content: trimmed }
     const next = [...messages, userMessage]
     setMessages(next)
     setLoading(true)
 
+    const systemPrompt =
+      mode === 'planner' ? buildPlannerSystemPrompt() : buildSystemPrompt(trip)
+    const maxTokens = mode === 'planner' ? 2048 : 1024
+
     let assistantText = ''
     setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
     try {
-      await sendMessage(next, trip, apiKey, (chunk) => {
+      await sendMessage(next, systemPrompt, apiKey, (chunk) => {
         assistantText += chunk
         setMessages((prev) => [
           ...prev.slice(0, -1),
           { role: 'assistant', content: assistantText },
         ])
-      })
+      }, maxTokens)
+
+      const parsed = extractTripJson(assistantText)
+      if (parsed) setDraftTrip(assignIds(parsed))
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Something went wrong'
       setMessages((prev) => [
@@ -75,6 +152,13 @@ export default function AISidebar({ trip }: Props) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const createDraft = () => {
+    if (!draftTrip) return
+    setTrips([...trips, draftTrip])
+    setActiveTrip(draftTrip.id)
+    toggleAISidebar()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -104,12 +188,23 @@ export default function AISidebar({ trip }: Props) {
         className="flex shrink-0 items-center justify-between px-5 py-4"
         style={{ borderBottom: '1px solid var(--border)' }}
       >
-        <span
-          className="text-xs font-bold uppercase tracking-widest"
-          style={{ fontFamily: 'var(--font-display)', color: 'var(--accent)' }}
-        >
-          ✦ AI Assistant
-        </span>
+        <div className="flex items-center gap-3">
+          <span
+            className="text-xs font-bold uppercase tracking-widest"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--accent)' }}
+          >
+            ✦ {mode === 'planner' ? 'Trip Planner' : 'AI Assistant'}
+          </span>
+          {mode === 'planner' && (
+            <button
+              onClick={switchToAssistant}
+              className="text-xs hover:opacity-70 transition-opacity"
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}
+            >
+              ← back
+            </button>
+          )}
+        </div>
         <button
           onClick={toggleAISidebar}
           className="p-1 hover:opacity-60 transition-opacity"
@@ -121,7 +216,7 @@ export default function AISidebar({ trip }: Props) {
 
       {/* Messages */}
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
-        {messages.length === 0 && (
+        {messages.length === 0 && mode === 'assistant' && (
           <div className="flex flex-col gap-3">
             <p
               className="text-xs"
@@ -145,8 +240,30 @@ export default function AISidebar({ trip }: Props) {
                   {p}
                 </button>
               ))}
+              <button
+                onClick={switchToPlanner}
+                className="flex items-center gap-2 px-3 py-2 text-left text-xs hover:opacity-80 transition-opacity"
+                style={{
+                  border: '1px solid var(--accent)',
+                  color: 'var(--accent)',
+                  fontFamily: 'var(--font-display)',
+                  background: 'var(--bg-base)',
+                }}
+              >
+                <Wand2 size={11} />
+                Plan a new trip with AI
+              </button>
             </div>
           </div>
+        )}
+
+        {messages.length === 0 && mode === 'planner' && (
+          <p
+            className="text-xs"
+            style={{ fontFamily: 'var(--font-body)', color: 'var(--text-secondary)' }}
+          >
+            Describe the trip you have in mind — where, when, budget — and I'll build a draft you can adjust.
+          </p>
         )}
 
         {messages.map((msg, i) => (
@@ -172,9 +289,11 @@ export default function AISidebar({ trip }: Props) {
                 wordBreak: 'break-word',
               }}
             >
-              {msg.content || (loading && i === messages.length - 1 ? (
-                <Loader size={12} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
-              ) : null)}
+              {msg.content
+                ? msg.content.replace(/```trip-json[\s\S]*?```/g, '').trim()
+                : (loading && i === messages.length - 1 ? (
+                  <Loader size={12} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
+                ) : null)}
             </div>
           </div>
         ))}
@@ -183,6 +302,17 @@ export default function AISidebar({ trip }: Props) {
           <div className="flex items-center gap-2">
             <Loader size={12} className="animate-spin" style={{ color: 'var(--text-muted)' }} />
           </div>
+        )}
+
+        {draftTrip && !loading && (
+          <button
+            onClick={createDraft}
+            className="flex items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-opacity"
+            style={{ background: 'var(--accent)', color: '#0a0a0a', fontFamily: 'var(--font-display)' }}
+          >
+            <Wand2 size={12} />
+            Open draft trip
+          </button>
         )}
 
         {error && (
@@ -205,7 +335,7 @@ export default function AISidebar({ trip }: Props) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about your trip…"
+            placeholder={mode === 'planner' ? 'Describe your trip idea…' : 'Ask about your trip…'}
             rows={2}
             className="flex-1 resize-none px-3 py-2 text-sm outline-none"
             style={{

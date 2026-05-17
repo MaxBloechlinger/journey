@@ -60,21 +60,86 @@ export function buildSystemPrompt(trip: Trip): string {
     .join('\n')
 }
 
+export function buildPlannerSystemPrompt(): string {
+  return `You are a travel planning assistant. Your job is to help the user plan a new trip from scratch.
+
+Ask short clarifying questions until you know:
+- Home city and country
+- Which cities/countries to visit (and rough order)
+- Approximate travel dates or total duration
+- Total budget and preferred currency
+- Travel style (budget/mid-range/comfortable)
+
+Once you have enough information, write a brief friendly summary, then output a trip draft using EXACTLY this format at the end of your message:
+
+\`\`\`trip-json
+{
+  "name": "Trip Name",
+  "totalBudget": 3000,
+  "currency": "EUR",
+  "originCity": "Zurich",
+  "originCountry": "Switzerland",
+  "transitToFirst": {
+    "type": "Flight",
+    "fromCity": "Zurich",
+    "toCity": "Bangkok",
+    "departureDate": "2026-09-01",
+    "arrivalDate": "2026-09-01",
+    "cost": 420,
+    "airline": "Swiss"
+  },
+  "segments": [
+    {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "arrivalDate": "2026-09-01",
+      "departureDate": "2026-09-07",
+      "accommodation": {
+        "name": "Example Hostel",
+        "type": "Hostel",
+        "costPerNight": 20
+      },
+      "activities": [
+        { "name": "Grand Palace", "cost": 15 }
+      ],
+      "transitToNext": {
+        "type": "Flight",
+        "fromCity": "Bangkok",
+        "toCity": "Tokyo",
+        "departureDate": "2026-09-07",
+        "arrivalDate": "2026-09-07",
+        "cost": 280,
+        "airline": "Thai Airways"
+      }
+    }
+  ]
+}
+\`\`\`
+
+Rules for the JSON:
+- Use realistic cost estimates in the requested currency
+- Only include "transitToNext" on segments that have a following segment
+- Omit "transitToFirst" if the origin city is unknown
+- accommodation type must be one of: Hotel, Airbnb, Hostel, Guesthouse, Other
+- transit type must be one of: Flight, Train, Bus, Ferry, Other
+- dates must be YYYY-MM-DD format
+- Keep it to the actual cities discussed — don't add extras`
+}
+
 export type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
 export async function sendMessage(
   messages: ChatMessage[],
-  trip: Trip,
+  systemPrompt: string,
   apiKey: string | undefined,
-  onChunk: (text: string) => void
+  onChunk: (text: string) => void,
+  maxTokens = 1024
 ): Promise<void> {
-  const systemPrompt = buildSystemPrompt(trip)
-
   if (import.meta.env.DEV && apiKey) {
     const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
     const stream = client.messages.stream({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
+      max_tokens: maxTokens,
       system: systemPrompt,
       messages,
     })
@@ -92,9 +157,15 @@ export async function sendMessage(
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, systemPrompt }),
+    body: JSON.stringify({ messages, systemPrompt, maxTokens }),
   })
+
+  if (res.status === 429) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? 'Rate limit reached — try again in an hour.')
+  }
   if (!res.ok) throw new Error(`API error ${res.status}`)
+
   const reader = res.body!.getReader()
   const decoder = new TextDecoder()
   while (true) {
