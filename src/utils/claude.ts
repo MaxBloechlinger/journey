@@ -140,11 +140,10 @@ export async function sendMessage(
     body: JSON.stringify({ messages, systemPrompt, maxTokens }),
   })
 
-  if (res.status === 429) {
+  if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(body.error ?? 'Rate limit reached — try again in an hour.')
+    throw new Error(body.error ?? `API error ${res.status}`)
   }
-  if (!res.ok) throw new Error(`API error ${res.status}`)
 
   const reader = res.body!.getReader()
   const decoder = new TextDecoder()
