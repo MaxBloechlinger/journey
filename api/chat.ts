@@ -33,30 +33,44 @@ export default async function handler(req: any, res: any) {
     return
   }
 
-  const { messages, systemPrompt, maxTokens = 1024 } = req.body
-
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    systemInstruction: systemPrompt,
-  })
-
-  const geminiMessages = messages.map((m: { role: string; content: string }) => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }],
-  }))
-
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-
-  const result = await model.generateContentStream({
-    contents: geminiMessages,
-    generationConfig: { maxOutputTokens: Math.min(Number(maxTokens), MAX_TOKENS_CAP) },
-  })
-
-  for await (const chunk of result.stream) {
-    const text = chunk.text()
-    if (text) res.write(text)
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    res.status(500).json({ error: 'GEMINI_API_KEY is not configured on the server.' })
+    return
   }
 
-  res.end()
+  const { messages, systemPrompt, maxTokens = 1024 } = req.body
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      systemInstruction: systemPrompt,
+    })
+
+    const geminiMessages = messages.map((m: { role: string; content: string }) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }))
+
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+
+    const result = await model.generateContentStream({
+      contents: geminiMessages,
+      generationConfig: { maxOutputTokens: Math.min(Number(maxTokens), MAX_TOKENS_CAP) },
+    })
+
+    for await (const chunk of result.stream) {
+      const text = chunk.text()
+      if (text) res.write(text)
+    }
+
+    res.end()
+  } catch (err: any) {
+    if (!res.headersSent) {
+      res.status(500).json({ error: err?.message ?? 'Gemini API error' })
+    } else {
+      res.end()
+    }
+  }
 }
