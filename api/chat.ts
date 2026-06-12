@@ -10,6 +10,12 @@ export default async function handler(req: any, res: any) {
 
   const { messages, systemPrompt, maxTokens = 1024 } = req.body
 
+  if (!Array.isArray(messages) || messages.length > 40) {
+    return res.status(400).json({ error: 'Invalid request' })
+  }
+
+  const safeMaxTokens = Math.min(typeof maxTokens === 'number' ? maxTokens : 1024, 2048)
+
   const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -19,7 +25,7 @@ export default async function handler(req: any, res: any) {
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
-      max_tokens: maxTokens,
+      max_tokens: safeMaxTokens,
       stream: true,
     }),
   })
