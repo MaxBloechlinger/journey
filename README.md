@@ -166,9 +166,9 @@ Development follows a milestone-based approach. Each milestone has a single bina
 ### Sprint 3 — Intelligence Layer
 | # | Milestone | Status |
 |---|---|---|
-| 10 | Budget bar in header shows live total, remaining, over/under status | ⬜ |
-| 11 | Leaflet map renders with city markers; arcs trace the route in order | ⬜ |
-| 12 | Drag to reorder segments; budget recalculates | ⬜ |
+| 10 | Budget bar in header shows live total, remaining, over/under status | ✅ |
+| 11 | Leaflet map renders with city markers; arcs trace the route in order | ✅ |
+| 12 | Drag to reorder segments; budget recalculates | ✅ |
 | 13 | AI sidebar opens; Claude responds with full trip context | ⬜ |
 
 ### Sprint 4 — Polish & Ship

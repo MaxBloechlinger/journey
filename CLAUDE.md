@@ -18,7 +18,7 @@ Full spec: `WHITEPAPER.md` (canonical — do not deviate from it without updatin
 ## Current State
 
 **Active Sprint:** Sprint 3 — Intelligence Layer  
-**Current Milestone:** 10 (budget summary bar)  
+**Current Milestone:** 13 (AI sidebar — wire up Claude API)  
 
 Update this section at the start of each session. Check `git log --oneline -10` and the README milestone table to orient yourself.
 
@@ -104,9 +104,9 @@ localStorage key: `journey_state`
 - [x] 9. Add activities; costs per city add up correctly
 
 ### Sprint 3 — Intelligence Layer
-- [ ] 10. Budget bar in header shows live total, remaining, over/under status
-- [ ] 11. Leaflet map renders with city markers; arcs trace the route in order
-- [ ] 12. Drag to reorder segments; budget recalculates
+- [x] 10. Budget bar in header shows live total, remaining, over/under status
+- [x] 11. Leaflet map renders with city markers; arcs trace the route in order
+- [x] 12. Drag to reorder segments; budget recalculates
 - [ ] 13. AI sidebar opens; Claude responds with full trip context
 
 ### Sprint 4 — Polish & Ship
