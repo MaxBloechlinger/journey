@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Send, Loader, Wand2 } from 'lucide-react'
+import { X, Send, Loader, Wand2, RotateCcw } from 'lucide-react'
 import type { Trip, CitySegment, Activity, Accommodation, Transit } from '../../types/trip'
 import { useUIStore } from '../../store/uiStore'
 import { useTripStore } from '../../store/tripStore'
@@ -200,13 +200,25 @@ export default function AISidebar({ trip }: Props) {
             </button>
           )}
         </div>
-        <button
-          onClick={toggleAISidebar}
-          className="p-1 hover:opacity-60 transition-opacity"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          <X size={14} />
-        </button>
+        <div className="flex items-center gap-2">
+          {messages.length > 0 && (
+            <button
+              onClick={() => { setMessages([]); setDraftTrip(null); setError(null) }}
+              className="p-1 hover:opacity-60 transition-opacity"
+              style={{ color: 'var(--text-muted)' }}
+              title="Clear conversation"
+            >
+              <RotateCcw size={13} />
+            </button>
+          )}
+          <button
+            onClick={toggleAISidebar}
+            className="p-1 hover:opacity-60 transition-opacity"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <X size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
