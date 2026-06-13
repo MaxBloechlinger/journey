@@ -357,6 +357,12 @@ export default function AISidebar({ trip }: Props) {
         className="shrink-0 px-4 py-3"
         style={{ borderTop: '1px solid var(--border)' }}
       >
+        <p
+          className="mb-2 text-xs"
+          style={{ fontFamily: 'var(--font-body)', color: 'var(--text-muted)', fontStyle: 'italic' }}
+        >
+          {getHint(mode, messages.length)}
+        </p>
         <div className="flex gap-2">
           <textarea
             ref={textareaRef}
