@@ -13,6 +13,27 @@ const SUGGESTED_PROMPTS = [
   'How does the cost breakdown compare across cities?',
 ]
 
+const ASSISTANT_HINTS = [
+  'Ask about your most expensive city.',
+  'Try: "What would I save if I cut one night somewhere?"',
+  'Ask how your activity spend compares to accommodation.',
+  'Try: "Is my flight budget reasonable for these routes?"',
+  'Ask which part of the trip has the best value.',
+  'Try: "What are the biggest risks to my budget?"',
+]
+
+const PLANNER_HINTS = [
+  'Mention your budget and preferred travel style.',
+  'Tell me which cities you\'re considering.',
+  'Add rough dates and I\'ll estimate costs.',
+  'Try: "Plan 3 weeks in Southeast Asia for €2,000."',
+]
+
+function getHint(mode: 'assistant' | 'planner', messageCount: number): string {
+  const hints = mode === 'planner' ? PLANNER_HINTS : ASSISTANT_HINTS
+  return hints[messageCount % hints.length]
+}
+
 function extractTripJson(text: string): object | null {
   const match = text.match(/```trip-json\s*([\s\S]*?)```/)
   if (!match) return null
